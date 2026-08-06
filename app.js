@@ -4,7 +4,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // 1. Initialize Leaflet Map
     const map = L.map('map', {
         zoomControl: true,
-        attributionControl: true
+        attributionControl: true,
+        preferCanvas: true // Back on: 100x speed for polygons (GPS freeze fixed)
     }).setView([-17.8, -40.0], 7);
     
     // Fix map rendering bug on mobile
@@ -94,14 +95,21 @@ document.addEventListener('DOMContentLoaded', () => {
             const talhoesEnabled = toggleTalhoes ? toggleTalhoes.checked : true;
             const zoom = map.getZoom();
             
-            activeLabelGroups.TALHOES.clearLayers();
-            
             if (talhoesEnabled && zoom >= TALHOES_ZOOM_THRESHOLD) {
-                const bounds = map.getBounds().pad(0.2); // slight padding for smooth panning
+                const bounds = map.getBounds().pad(0.1); // smaller pad for faster checks
                 for (const marker of layerLabels.TALHOES) {
-                    if (bounds.contains(marker.getLatLng())) {
+                    const isVisible = bounds.contains(marker.getLatLng());
+                    const hasLayer = activeLabelGroups.TALHOES.hasLayer(marker);
+                    if (isVisible && !hasLayer) {
                         activeLabelGroups.TALHOES.addLayer(marker);
+                    } else if (!isVisible && hasLayer) {
+                        activeLabelGroups.TALHOES.removeLayer(marker);
                     }
+                }
+            } else {
+                // Only clear if we zoom out or disable
+                if (activeLabelGroups.TALHOES.getLayers().length > 0) {
+                    activeLabelGroups.TALHOES.clearLayers();
                 }
             }
         }
@@ -364,6 +372,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // Create Map Layer
             const mapLayer = L.geoJSON(data, {
+                smoothFactor: isMobile ? 2.5 : 1.5, // Simplifies polygon geometry for massive mobile FPS gain
                 style: styleFunc,
                 pointToLayer: function (feature, latlng) {
                     if (isEquipe) {
