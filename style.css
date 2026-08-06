@@ -470,21 +470,81 @@ body, html {
     margin-bottom: 8px;
 }
 
+.mobile-only-btn {
+    display: none;
+}
+
 /* Responsive layout adjustments */
 @media(max-width: 768px) {
+    .mobile-only-btn {
+        display: flex;
+        width: 44px; height: 44px; border-radius: 12px; 
+        background: var(--accent-color); border: none; color: #fff;
+        justify-content: center; align-items: center; 
+        box-shadow: 0 4px 12px rgba(0,0,0,0.3); cursor: pointer;
+    }
     .app-container {
-        flex-direction: column-reverse;
+        display: block;
+    }
+    .map-wrapper {
+        padding: 0;
+        height: 100vh;
+        width: 100vw;
     }
     .sidebar {
+        position: absolute;
+        bottom: 0; left: 0; right: 0;
         width: 100%;
-        height: 45%;
+        height: auto;
+        max-height: 80vh;
         border-right: none;
-        border-top: 1px solid var(--border-color);
+        border-top: 1px solid var(--accent-color);
+        border-radius: 24px 24px 0 0;
+        transform: translateY(100%);
+        transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        z-index: 2000;
+        box-shadow: 0 -10px 40px rgba(0,0,0,0.9);
+    }
+    .sidebar.open {
+        transform: translateY(0);
     }
     .basemap-selector {
         top: auto;
         bottom: 20px;
         right: 20px;
+    }
+    .top-right-wrapper {
+        top: 10px !important;
+        right: 10px !important;
+        gap: 8px !important;
+    }
+    /* Compact Search on Mobile */
+    .search-container.floating {
+        width: 44px;
+        transition: width 0.3s ease;
+        overflow: hidden;
+        border-radius: 8px;
+        background: rgba(10, 15, 13, 0.6);
+    }
+    .search-container.floating:focus-within {
+        width: 220px;
+    }
+    .search-container.floating #layer-search {
+        padding-left: 36px;
+        color: transparent;
+        background: transparent;
+        border: none;
+    }
+    .search-container.floating:focus-within #layer-search {
+        color: var(--text-main);
+    }
+    .search-container.floating .search-icon {
+        left: 14px;
+        font-size: 16px;
+    }
+    .top-right-controls {
+        padding: 4px;
+        background: rgba(45, 48, 45, 0.6);
     }
 }
   

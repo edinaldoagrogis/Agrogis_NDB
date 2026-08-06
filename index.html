@@ -122,6 +122,11 @@
             <!-- Floating Top Right Wrapper -->
             <div class="top-right-wrapper" style="position: absolute; top: 24px; right: 24px; z-index: 1000; display: flex; flex-direction: column; align-items: flex-end; gap: 12px;">
                 
+                <!-- Mobile Menu Button -->
+                <button id="mobile-menu-btn" class="mobile-only-btn" title="Menu Principal">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+                </button>
+
                 <!-- Gray Panel: Search + Basemap -->
                 <div class="top-right-controls" style="display: flex; flex-direction: column; gap: 8px;">
                     <!-- Search Box -->
@@ -286,5 +291,22 @@
     <!-- Custom JS App -->
     <script src="app.js"></script>
     <script src="pdf_parser.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const menuBtn = document.getElementById('mobile-menu-btn');
+            const sidebar = document.querySelector('.sidebar');
+            if (menuBtn && sidebar) {
+                menuBtn.addEventListener('click', (e) => {
+                    sidebar.classList.toggle('open');
+                    e.stopPropagation();
+                });
+                document.getElementById('map').addEventListener('click', () => {
+                    if (window.innerWidth <= 768 && sidebar.classList.contains('open')) {
+                        sidebar.classList.remove('open');
+                    }
+                });
+            }
+        });
+    </script>
 </body>
 </html>
