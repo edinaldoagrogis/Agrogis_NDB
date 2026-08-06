@@ -4,9 +4,11 @@ document.addEventListener('DOMContentLoaded', () => {
     // 1. Initialize Leaflet Map
     const map = L.map('map', {
         zoomControl: true,
-        attributionControl: true,
-        preferCanvas: true // Significant performance boost for vector rendering
+        attributionControl: true
     }).setView([-17.8, -40.0], 7);
+    
+    // Fix map rendering bug on mobile
+    setTimeout(() => { map.invalidateSize(); }, 500);
 
     map.zoomControl.setPosition('bottomright');
 
@@ -1270,11 +1272,6 @@ document.addEventListener('DOMContentLoaded', () => {
             gpsMarker.setLatLng(e.latlng);
             gpsCircle.setLatLng(e.latlng);
             gpsCircle.setRadius(radius);
-        }
-        
-        if (!hasCenteredInitialGps) {
-            map.flyTo(e.latlng, 15, {duration: 1.5});
-            hasCenteredInitialGps = true;
         }
         
         // Export to window for the locate control to easily access
