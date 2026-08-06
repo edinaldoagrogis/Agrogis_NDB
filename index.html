@@ -239,42 +239,52 @@
             </div>
 
             <!-- Floating Measure Result Window -->
-            <div id="measure-result" style="display: none; position: absolute; bottom: 40px; left: calc(50% - 150px); z-index: 1000; width: 300px; padding: 16px; background: rgba(5, 8, 7, 0.95); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; box-shadow: 0 8px 32px rgba(0,0,0,0.5); font-size: 13px; color: #a8b8b0; flex-direction: column; gap: 10px;">
+            <div id="measure-result" style="display: none; position: absolute; bottom: 40px; left: calc(50% - 150px); z-index: 1000; width: 300px; padding: 16px; background: rgba(5, 8, 7, 0.95); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; box-shadow: 0 8px 32px rgba(0,0,0,0.5); font-size: 13px; color: #a8b8b0; flex-direction: column;">
                 <div id="measure-drag-handle" style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 8px; margin-bottom: 4px; cursor: move;">
                     <span style="font-weight: 600; color: #fff; letter-spacing: 1px;">FERRAMENTA DE MEDIÇÃO</span>
-                    <button id="close-measure-btn" style="background: none; border: none; color: #fff; cursor: pointer; font-size: 20px; padding: 0; line-height: 1;">&times;</button>
+                    <div style="display: flex; gap: 8px;">
+                        <button id="min-measure-btn" style="background: none; border: none; color: #fff; cursor: pointer; font-size: 24px; padding: 0 4px; line-height: 0.5;" title="Minimizar">-</button>
+                        <button id="close-measure-btn" style="background: none; border: none; color: #fff; cursor: pointer; font-size: 20px; padding: 0; line-height: 1;" title="Fechar">&times;</button>
+                    </div>
                 </div>
-                <div style="display: flex; justify-content: space-between; font-size: 14px;">
-                    <span>Distância:</span> <strong id="measure-distance" style="color: #fff;">0 m</strong>
+                <div id="measure-body" style="display: flex; flex-direction: column; gap: 10px; padding-top: 6px;">
+                    <div style="display: flex; justify-content: space-between; font-size: 14px;">
+                        <span>Distância:</span> <strong id="measure-distance" style="color: #fff;">0 m</strong>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; font-size: 14px;">
+                        <span>Área:</span> <strong id="measure-area" style="color: #fff;">0 ha</strong>
+                    </div>
+                    <div style="font-size: 11px; color: #ffeb3b; text-align: center; margin-top: 6px; line-height: 1.4;">Clique Esquerdo: desenhar pontos.<br>Clique Direito: encerrar desenho.<br>Após encerrar, clique no mapa para fechar.</div>
+                    <button id="tool-measure-clear" style="width: 100%; padding: 10px; margin-top: 4px; background: rgba(232, 93, 4, 0.2); border: 1px solid #e85d04; color: #fff; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: bold; transition: all 0.2s; text-transform: uppercase;">Limpar Medição</button>
                 </div>
-                <div style="display: flex; justify-content: space-between; font-size: 14px;">
-                    <span>Área:</span> <strong id="measure-area" style="color: #fff;">0 ha</strong>
-                </div>
-                <div style="font-size: 11px; color: #ffeb3b; text-align: center; margin-top: 6px; line-height: 1.4;">Clique Esquerdo: desenhar pontos.<br>Clique Direito: encerrar desenho.<br>Após encerrar, clique no mapa para fechar.</div>
-                <button id="tool-measure-clear" style="width: 100%; padding: 10px; margin-top: 4px; background: rgba(232, 93, 4, 0.2); border: 1px solid #e85d04; color: #fff; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: bold; transition: all 0.2s; text-transform: uppercase;">Limpar Medição</button>
             </div>
 
             <!-- Floating Route Window -->
-            <div id="route-panel" style="display: none; position: absolute; bottom: 40px; left: calc(50% - 150px); z-index: 1000; width: 300px; padding: 16px; background: rgba(5, 8, 7, 0.95); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; box-shadow: 0 8px 32px rgba(0,0,0,0.5); font-size: 13px; color: #a8b8b0; flex-direction: column; gap: 10px;">
+            <div id="route-panel" style="display: none; position: absolute; bottom: 40px; left: calc(50% - 150px); z-index: 1000; width: 300px; padding: 16px; background: rgba(5, 8, 7, 0.95); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; box-shadow: 0 8px 32px rgba(0,0,0,0.5); font-size: 13px; color: #a8b8b0; flex-direction: column;">
                 <div id="route-drag-handle" style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 8px; margin-bottom: 4px; cursor: move;">
                     <span style="font-weight: 600; color: #fff; letter-spacing: 1px;">TRAÇAR ROTA</span>
-                    <button id="close-route-btn" style="background: none; border: none; color: #fff; cursor: pointer; font-size: 20px; padding: 0; line-height: 1;">&times;</button>
-                </div>
-                <div style="display: flex; flex-direction: column; gap: 8px;">
-                    <div style="display: flex; gap: 4px;">
-                        <input type="text" id="route-search-origin" list="fazendas-list" placeholder="📍 Buscar Origem..." style="flex: 1; padding: 10px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: #fff; border-radius: 4px; font-size: 12px; transition: all 0.2s;" autocomplete="off">
-                        <button id="route-btn-origin" title="Escolher no Mapa" style="padding: 10px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: #fff; border-radius: 4px; cursor: pointer; transition: all 0.2s;">🗺️ Mapa</button>
-                    </div>
-                    <button id="route-btn-myloc" style="width: 100%; padding: 8px; background: rgba(33,150,243,0.2); border: 1px solid #2196F3; color: #fff; border-radius: 4px; text-align: center; cursor: pointer; font-size: 11px; transition: all 0.2s; margin-top: -4px;">🎯 Usar Minha Localização Atual</button>
-                    
-                    <div style="display: flex; gap: 4px;">
-                        <input type="text" id="route-search-dest" list="fazendas-list" placeholder="📍 Buscar Destino..." style="flex: 1; padding: 10px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: #fff; border-radius: 4px; font-size: 12px; transition: all 0.2s;" autocomplete="off">
-                        <button id="route-btn-dest" title="Escolher no Mapa" style="padding: 10px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: #fff; border-radius: 4px; cursor: pointer; transition: all 0.2s;">🗺️ Mapa</button>
+                    <div style="display: flex; gap: 8px;">
+                        <button id="min-route-btn" style="background: none; border: none; color: #fff; cursor: pointer; font-size: 24px; padding: 0 4px; line-height: 0.5;" title="Minimizar">-</button>
+                        <button id="close-route-btn" style="background: none; border: none; color: #fff; cursor: pointer; font-size: 20px; padding: 0; line-height: 1;" title="Fechar">&times;</button>
                     </div>
                 </div>
-                <div id="route-info" style="display: none; padding: 10px; margin-top: 4px; background: rgba(232, 93, 4, 0.1); border: 1px solid rgba(232, 93, 4, 0.3); border-radius: 6px; text-align: center; flex-direction: column; gap: 4px;">
-                    <span style="font-size: 11px; color: #f48c06; font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px;">Resumo da Rota</span>
-                    <div><span style="font-size: 12px; color: #a8b8b0;">Distância Total:</span> <strong id="route-distance-text" style="color: #fff; font-size: 14px; margin-left: 5px;">Calculando...</strong></div>
+                <div id="route-body" style="display: flex; flex-direction: column; gap: 10px; padding-top: 6px;">
+                    <div style="display: flex; flex-direction: column; gap: 8px;">
+                        <div style="display: flex; gap: 4px;">
+                            <input type="text" id="route-search-origin" list="fazendas-list" placeholder="📍 Buscar Origem..." style="flex: 1; padding: 10px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: #fff; border-radius: 4px; font-size: 12px; transition: all 0.2s;" autocomplete="off">
+                            <button id="route-btn-origin" title="Escolher no Mapa" style="padding: 10px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: #fff; border-radius: 4px; cursor: pointer; transition: all 0.2s;">🗺️ Mapa</button>
+                        </div>
+                        <button id="route-btn-myloc" style="width: 100%; padding: 8px; background: rgba(33,150,243,0.2); border: 1px solid #2196F3; color: #fff; border-radius: 4px; text-align: center; cursor: pointer; font-size: 11px; transition: all 0.2s; margin-top: -4px;">🎯 Usar Minha Localização Atual</button>
+                        
+                        <div style="display: flex; gap: 4px;">
+                            <input type="text" id="route-search-dest" list="fazendas-list" placeholder="📍 Buscar Destino..." style="flex: 1; padding: 10px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: #fff; border-radius: 4px; font-size: 12px; transition: all 0.2s;" autocomplete="off">
+                            <button id="route-btn-dest" title="Escolher no Mapa" style="padding: 10px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: #fff; border-radius: 4px; cursor: pointer; transition: all 0.2s;">🗺️ Mapa</button>
+                        </div>
+                    </div>
+                    <div id="route-info" style="display: none; padding: 10px; margin-top: 4px; background: rgba(232, 93, 4, 0.1); border: 1px solid rgba(232, 93, 4, 0.3); border-radius: 6px; text-align: center; flex-direction: column; gap: 4px;">
+                        <span style="font-size: 11px; color: #f48c06; font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px;">Resumo da Rota</span>
+                        <div><span style="font-size: 12px; color: #a8b8b0;">Distância Total:</span> <strong id="route-distance-text" style="color: #fff; font-size: 14px; margin-left: 5px;">Calculando...</strong></div>
+                    </div>
                 </div>
             </div>
         </main>
@@ -303,6 +313,35 @@
                 document.getElementById('map').addEventListener('click', () => {
                     if (window.innerWidth <= 768 && sidebar.classList.contains('open')) {
                         sidebar.classList.remove('open');
+                    }
+                });
+            }
+
+            // Minimize Panels logic
+            const minMeasureBtn = document.getElementById('min-measure-btn');
+            const measureBody = document.getElementById('measure-body');
+            if(minMeasureBtn && measureBody) {
+                minMeasureBtn.addEventListener('click', () => {
+                    if (measureBody.style.display === 'none') {
+                        measureBody.style.display = 'flex';
+                        minMeasureBtn.innerHTML = '-';
+                    } else {
+                        measureBody.style.display = 'none';
+                        minMeasureBtn.innerHTML = '+';
+                    }
+                });
+            }
+            
+            const minRouteBtn = document.getElementById('min-route-btn');
+            const routeBody = document.getElementById('route-body');
+            if(minRouteBtn && routeBody) {
+                minRouteBtn.addEventListener('click', () => {
+                    if (routeBody.style.display === 'none') {
+                        routeBody.style.display = 'flex';
+                        minRouteBtn.innerHTML = '-';
+                    } else {
+                        routeBody.style.display = 'none';
+                        minRouteBtn.innerHTML = '+';
                     }
                 });
             }
