@@ -452,6 +452,9 @@ body, html {
 .leaflet-popup-content {
     margin: 16px 20px !important;
     font-family: var(--font-family) !important;
+    max-height: 40vh !important;
+    overflow-y: auto !important;
+    padding-right: 5px; /* space for scrollbar */
 }
 
 /* Popup Table formatting */
