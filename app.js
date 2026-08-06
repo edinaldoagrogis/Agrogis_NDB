@@ -367,7 +367,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         
                         // Use Custom 3D Harvester Icon for Corte Mecanizado
                         if (atividade.includes('CORTE')) {
-                            const iconUrl = 'file:///C:/Users/EDINALDO/.gemini/antigravity/brain/370ddc77-5971-4ead-a0a6-9457e3125d61/.user_uploaded/media_1785944571883.png';
+                            const iconUrl = 'colheitadeira.jpg';
                             return L.marker(latlng, {
                                 icon: L.divIcon({
                                     className: 'equipe-marker',
