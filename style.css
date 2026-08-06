@@ -546,6 +546,19 @@ body, html {
         padding: 4px;
         background: rgba(45, 48, 45, 0.6);
     }
+    
+    /* Mobile Performance Boost: Disable heavy blur filters */
+    .sidebar, 
+    #floating-layers-panel, 
+    #floating-tools-panel, 
+    #measure-result, 
+    #route-panel,
+    .top-right-controls {
+        backdrop-filter: none !important;
+        -webkit-backdrop-filter: none !important;
+        background-color: #0d1410 !important;
+        border: 1px solid rgba(255,255,255,0.1) !important;
+    }
 }
   
 /* Transparent Fazenda Label */  

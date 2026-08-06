@@ -4,7 +4,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // 1. Initialize Leaflet Map
     const map = L.map('map', {
         zoomControl: true,
-        attributionControl: true
+        attributionControl: true,
+        preferCanvas: true // Significant performance boost for vector rendering
     }).setView([-17.8, -40.0], 7);
 
     map.zoomControl.setPosition('bottomright');
@@ -144,7 +145,7 @@ document.addEventListener('DOMContentLoaded', () => {
         };
     }
     
-    const debouncedUpdateLabelVisibility = debounce(updateLabelVisibility, 150);
+    const debouncedUpdateLabelVisibility = debounce(updateLabelVisibility, 350);
 
     map.on('zoomend', debouncedUpdateLabelVisibility);
     map.on('moveend', debouncedUpdateLabelVisibility);
@@ -1432,12 +1433,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     document.getElementById('close-route-btn').addEventListener('click', deactivateRoute);
     
-    // Clear route on map click if a route is displayed
-    map.on('click', (e) => {
-        if (routingControl && !window.routeSelectionMode) {
-            deactivateRoute();
-        }
-    });
+    // (Route map click to close removed per user request)
 
     function calculateRoute() {
         if (!routeOriginData || !routeDestData) {
