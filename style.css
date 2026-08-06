@@ -442,6 +442,8 @@ body, html {
     font-weight: bold;
     transition: color 0.2s;
     z-index: 1000;
+    left: 0 !important;
+    right: auto !important;
 }
 
 .leaflet-popup-close-button:hover {
