@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NDB Holding Agrícola - GeoPortal</title>
+    
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+     integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+     crossorigin=""/>
+     
+    <!-- Leaflet Routing Machine CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.css" />
+     
+    <!-- Custom Style -->
+    <link rel="stylesheet" href="style.css">
+
+    <!-- Chart.js -->
+    <script src="chart.js"></script>
+    
+    <!-- PDF.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
+    
+    <!-- Turf.js for spatial calculations -->
+    <script src="https://unpkg.com/@turf/turf@6/turf.min.js"></script>
+    
+    <!-- GeoJSON Data fallbacks to bypass local CORS rules -->
+    <script src="layers_data.js"></script>
+    
+    <!-- Authentication Logic -->
+    <script src="auth.js"></script>
+</head>
+<body>
+    <!-- Login Overlay -->
+    <div id="login-overlay" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #111418; z-index: 9999; display: flex; justify-content: center; align-items: center; flex-direction: column;">
+        <div class="login-container" style="background: rgba(255,255,255,0.03); padding: 40px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05); text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.5); width: 320px;">
+            <img src="file:///C:/Users/EDINALDO/.gemini/antigravity/brain/370ddc77-5971-4ead-a0a6-9457e3125d61/.user_uploaded/media_1785950420997.png" alt="AGROGIS Logo" style="width: 250px; margin-bottom: 30px; mix-blend-mode: screen;">
+            
+            <input type="text" id="login-username" placeholder="Usuário" style="width: 100%; padding: 12px 15px; margin-bottom: 15px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.2); color: #fff; font-size: 14px; box-sizing: border-box; outline: none; transition: border-color 0.3s;">
+            <input type="password" id="login-password" placeholder="Senha" style="width: 100%; padding: 12px 15px; margin-bottom: 20px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.2); color: #fff; font-size: 14px; box-sizing: border-box; outline: none; transition: border-color 0.3s;">
+            
+            <div id="login-error" style="color: #ff4d4d; font-size: 12px; margin-bottom: 15px; display: none;">Credenciais inválidas!</div>
+            
+            <button id="btn-login" style="width: 100%; padding: 12px; border-radius: 6px; background: linear-gradient(90deg, #e85d04, #f48c06); color: #fff; font-weight: bold; border: none; cursor: pointer; text-transform: uppercase; letter-spacing: 1px; transition: transform 0.2s, box-shadow 0.2s;">Entrar</button>
+        </div>
+    </div>
+
+    <div class="app-container">
+        <!-- Sidebar Panel -->
+        <aside class="sidebar">
+            <div class="sidebar-header" style="position: relative; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 15px 0 10px 0; border-bottom: 1px solid rgba(255,255,255,0.03); text-align: center;">
+                <button id="btn-logout" style="position: absolute; top: 12px; left: 12px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: #fff; padding: 4px 8px; border-radius: 4px; font-size: 10px; cursor: pointer; transition: all 0.3s;" title="Sair do sistema" onmouseover="this.style.background='rgba(232, 93, 4, 0.8)'; this.style.borderColor='rgba(232, 93, 4, 1)';" onmouseout="this.style.background='rgba(255,255,255,0.05)'; this.style.borderColor='rgba(255,255,255,0.1)';">Sair</button>
+                <img src="file:///C:/Users/EDINALDO/.gemini/antigravity/brain/370ddc77-5971-4ead-a0a6-9457e3125d61/.user_uploaded/media_1785950420997.png" alt="AGROGIS Logo" style="width: 320px; max-width: 95%; height: auto; mix-blend-mode: screen; margin-top: -10px; margin-bottom: -2px; clip-path: inset(3px);">
+                <div style="font-size: 13px; font-weight: 700; color: #8fa89b; letter-spacing: 2px; text-transform: uppercase; text-shadow: 0 1px 2px rgba(0,0,0,0.5); margin-top: 18px; margin-bottom: 0px; line-height: 1.2;">Painel de Controle Operacional Agrícola</div>
+            </div>
+            
+            <div class="sidebar-content">
+                <!-- Sidebar Search Box moved to map overlay -->
+
+
+
+                <!-- PDF Importer -->
+                <div class="pdf-importer-container" id="pdf-importer-container" style="padding: 5px 20px 0 20px; display: none;">
+                    <div style="display: flex; gap: 8px; align-items: center;">
+                        <button id="btn-import-pdf" class="btn-import-pdf" style="flex-grow: 1; display: flex; justify-content: center; align-items: center; gap: 6px; border-radius: 50px; background: linear-gradient(90deg, #e85d04, #f48c06); color: #fff; font-weight: 700; border: none; padding: 8px 16px; box-shadow: 0 2px 8px rgba(232, 93, 4, 0.2); text-transform: uppercase; letter-spacing: 0.5px; font-size: 10px; transition: all 0.3s ease; cursor: pointer; white-space: nowrap;">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                                <polyline points="14 2 14 8 20 8"></polyline>
+                                <text x="7.5" y="16.5" font-size="6.5" font-family="Arial, sans-serif" font-weight="900" stroke="none" fill="currentColor">PDF</text>
+                            </svg>
+                            Importar Programação
+                        </button>
+                        <button id="btn-view-pdf" class="btn-view-pdf" style="display: none; width: 30px; height: 30px; border-radius: 50%; padding: 0; display: flex; justify-content: center; align-items: center; background: rgba(255,255,255,0.02); color: #fff; border: 1px solid rgba(255,255,255,0.02); cursor: pointer; transition: all 0.3s ease; flex-shrink: 0;" title="Visualizar PDF Atual">👁️</button>
+                    </div>
+                    <input type="file" id="pdf-file-input" accept=".pdf" style="display: none;">
+                    <div id="pdf-loading-indicator" style="display: none; color: #e85d04; font-size: 11px; margin-top: 8px; text-align: center;">⚙️ Processando PDF...</div>
+                </div>
+
+                <!-- Programação de Serviço -->
+                <div class="service-schedule-section" style="padding: 15px 0 5px 0;">
+                    <div id="prog-toggle" style="display: flex; justify-content: space-between; align-items: center; cursor: pointer; padding: 0 20px 10px 20px;">
+                        <h2 style="margin: 0; padding: 0;">Programação de Serviço</h2>
+                        <span id="prog-icon" style="font-size: 10px; color: var(--text-muted); transition: transform 0.2s;">▼</span>
+                    </div>
+                    <div id="prog-content" style="display: block; padding: 0 20px;">
+                        <div id="programacao-list" class="accordion-container">
+                            <!-- Accordions will be generated here by app.js -->
+                        </div>
+                    </div>
+                </div>
+                
+                <script>
+                    document.getElementById('prog-toggle').addEventListener('click', function() {
+                        const content = document.getElementById('prog-content');
+                        const icon = document.getElementById('prog-icon');
+                        if (content.style.display === 'none') {
+                            content.style.display = 'block';
+                            icon.innerHTML = '▼';
+                        } else {
+                            content.style.display = 'none';
+                            icon.innerHTML = '▲';
+                        }
+                    });
+                </script>
+
+            </div>
+
+            <div class="sidebar-footer">
+                <p>&copy; 2026 NDB Holding Agrícola</p>
+            </div>
+        </aside>
+
+        <!-- Map Container -->
+        <main class="map-wrapper">
+            <div id="map"></div>
+            <!-- Floating Top Right Wrapper -->
+            <div class="top-right-wrapper" style="position: absolute; top: 24px; right: 24px; z-index: 1000; display: flex; flex-direction: column; align-items: flex-end; gap: 12px;">
+                
+                <!-- Gray Panel: Search + Basemap -->
+                <div class="top-right-controls" style="display: flex; flex-direction: column; gap: 8px;">
+                    <!-- Search Box -->
+                    <div class="search-container floating" style="margin-bottom: 0;">
+                        <input type="text" id="layer-search" list="fazendas-list" placeholder="Localizar Fazenda...">
+                        <datalist id="fazendas-list"></datalist>
+                        <span class="search-icon">🔍</span>
+                    </div>
+
+                    <!-- BaseMap Selector Floating Card -->
+                    <div class="basemap-selector" style="margin-bottom: 0;">
+                        <button class="basemap-btn active" id="basemap-sat">Satélite</button>
+                        <button class="basemap-btn" id="basemap-osm">Mapa (OSM)</button>
+                    </div>
+                </div>
+
+                <!-- Floating Layers Menu (Now physically separated from the gray panel) -->
+                <div class="floating-layers-wrapper" style="position: relative;">
+                    <button id="floating-layers-btn" title="Camadas Vetoriais" style="width: 44px; height: 44px; border-radius: 12px; background: rgba(5, 8, 7, 0.85); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.1); color: #fff; display: flex; justify-content: center; align-items: center; cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,0.3); transition: all 0.2s;">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
+                            <polyline points="2 12 12 17 22 12"></polyline>
+                            <polyline points="2 17 12 22 22 17"></polyline>
+                        </svg>
+                    </button>
+
+                    <div id="floating-layers-panel" style="display: none; position: absolute; top: 52px; right: 0; width: 340px; background: rgba(5, 8, 7, 0.95); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.08); border-radius: 16px; box-shadow: 0 8px 32px rgba(0,0,0,0.5); overflow: hidden;">
+                        <div style="padding: 16px; border-bottom: 1px solid rgba(255,255,255,0.05); display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.02);">
+                            <h3 style="margin: 0; font-size: 14px; font-weight: 600; letter-spacing: 1px; color: #fff;">CAMADAS VETORIAIS</h3>
+                        </div>
+                        <div style="max-height: 60vh; overflow-y: auto; padding: 8px 0;" class="custom-scroll">
+                            <ul class="layer-list" id="dynamic-layer-list" style="margin: 0; padding: 0;">
+                                <!-- Dynamic items will be generated here by app.js -->
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Floating Tools Menu -->
+                <div class="floating-tools-wrapper" style="position: relative;">
+                    <button id="floating-tools-btn" title="Ferramentas" style="width: 44px; height: 44px; border-radius: 12px; background: rgba(5, 8, 7, 0.85); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.1); color: #fff; display: flex; justify-content: center; align-items: center; cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,0.3); transition: all 0.2s;">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path>
+                        </svg>
+                    </button>
+
+                    <div id="floating-tools-panel" style="display: none; position: absolute; top: 52px; right: 0; width: 280px; background: rgba(5, 8, 7, 0.95); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.08); border-radius: 16px; box-shadow: 0 8px 32px rgba(0,0,0,0.5); overflow: hidden;">
+                        <div style="padding: 16px; border-bottom: 1px solid rgba(255,255,255,0.05); display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.02);">
+                            <h3 style="margin: 0; font-size: 14px; font-weight: 600; letter-spacing: 1px; color: #fff;">FERRAMENTAS</h3>
+                        </div>
+                        <div style="padding: 16px; display: flex; flex-direction: column; gap: 12px;">
+                            <button id="tool-measure-btn" class="tool-action-btn" style="display: flex; align-items: center; gap: 12px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: #fff; padding: 12px; border-radius: 8px; cursor: pointer; transition: all 0.2s;">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+                                    <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
+                                    <line x1="12" y1="22.08" x2="12" y2="12"></line>
+                                </svg>
+                                <span style="font-size: 13px; font-weight: 500;">Medição (Área/Distância)</span>
+                            </button>
+                            
+                            <button id="tool-route-btn" class="tool-action-btn" style="display: flex; align-items: center; gap: 12px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: #fff; padding: 12px; border-radius: 8px; cursor: pointer; transition: all 0.2s;">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline>
+                                </svg>
+                                <span style="font-size: 13px; font-weight: 500;">Traçar Rota</span>
+                            </button>
+                        </div>
+
+                    </div>
+                </div>
+
+                <script>
+                    document.getElementById('floating-layers-btn').addEventListener('click', function(e) {
+                        e.stopPropagation();
+                        const panel = document.getElementById('floating-layers-panel');
+                        if (panel.style.display === 'none') {
+                            panel.style.display = 'block';
+                            document.getElementById('floating-tools-panel').style.display = 'none'; // Close other panel
+                        } else {
+                            panel.style.display = 'none';
+                        }
+                    });
+                    
+                    document.getElementById('floating-tools-btn').addEventListener('click', function(e) {
+                        e.stopPropagation();
+                        const panel = document.getElementById('floating-tools-panel');
+                        if (panel.style.display === 'none') {
+                            panel.style.display = 'block';
+                            document.getElementById('floating-layers-panel').style.display = 'none'; // Close other panel
+                        } else {
+                            panel.style.display = 'none';
+                        }
+                    });
+
+                    // Close panel when clicking outside map or in other empty areas
+                    document.addEventListener('click', function(e) {
+                        const panelLayers = document.getElementById('floating-layers-panel');
+                        const btnLayers = document.getElementById('floating-layers-btn');
+                        if (panelLayers && panelLayers.style.display === 'block' && !panelLayers.contains(e.target) && !btnLayers.contains(e.target)) {
+                            panelLayers.style.display = 'none';
+                        }
+                        
+                        const panelTools = document.getElementById('floating-tools-panel');
+                        const btnTools = document.getElementById('floating-tools-btn');
+                        if (panelTools && panelTools.style.display === 'block' && !panelTools.contains(e.target) && !btnTools.contains(e.target)) {
+                            panelTools.style.display = 'none';
+                        }
+                    });
+                </script>
+            </div>
+
+            <!-- Floating Measure Result Window -->
+            <div id="measure-result" style="display: none; position: absolute; bottom: 40px; left: calc(50% - 150px); z-index: 1000; width: 300px; padding: 16px; background: rgba(5, 8, 7, 0.95); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; box-shadow: 0 8px 32px rgba(0,0,0,0.5); font-size: 13px; color: #a8b8b0; flex-direction: column; gap: 10px;">
+                <div id="measure-drag-handle" style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 8px; margin-bottom: 4px; cursor: move;">
+                    <span style="font-weight: 600; color: #fff; letter-spacing: 1px;">FERRAMENTA DE MEDIÇÃO</span>
+                    <button id="close-measure-btn" style="background: none; border: none; color: #fff; cursor: pointer; font-size: 20px; padding: 0; line-height: 1;">&times;</button>
+                </div>
+                <div style="display: flex; justify-content: space-between; font-size: 14px;">
+                    <span>Distância:</span> <strong id="measure-distance" style="color: #fff;">0 m</strong>
+                </div>
+                <div style="display: flex; justify-content: space-between; font-size: 14px;">
+                    <span>Área:</span> <strong id="measure-area" style="color: #fff;">0 ha</strong>
+                </div>
+                <div style="font-size: 11px; color: #ffeb3b; text-align: center; margin-top: 6px; line-height: 1.4;">Clique Esquerdo: desenhar pontos.<br>Clique Direito: encerrar desenho.<br>Após encerrar, clique no mapa para fechar.</div>
+                <button id="tool-measure-clear" style="width: 100%; padding: 10px; margin-top: 4px; background: rgba(232, 93, 4, 0.2); border: 1px solid #e85d04; color: #fff; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: bold; transition: all 0.2s; text-transform: uppercase;">Limpar Medição</button>
+            </div>
+
+            <!-- Floating Route Window -->
+            <div id="route-panel" style="display: none; position: absolute; bottom: 40px; left: calc(50% - 150px); z-index: 1000; width: 300px; padding: 16px; background: rgba(5, 8, 7, 0.95); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; box-shadow: 0 8px 32px rgba(0,0,0,0.5); font-size: 13px; color: #a8b8b0; flex-direction: column; gap: 10px;">
+                <div id="route-drag-handle" style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 8px; margin-bottom: 4px; cursor: move;">
+                    <span style="font-weight: 600; color: #fff; letter-spacing: 1px;">TRAÇAR ROTA</span>
+                    <button id="close-route-btn" style="background: none; border: none; color: #fff; cursor: pointer; font-size: 20px; padding: 0; line-height: 1;">&times;</button>
+                </div>
+                <div style="display: flex; flex-direction: column; gap: 8px;">
+                    <div style="display: flex; gap: 4px;">
+                        <input type="text" id="route-search-origin" list="fazendas-list" placeholder="📍 Buscar Origem..." style="flex: 1; padding: 10px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: #fff; border-radius: 4px; font-size: 12px; transition: all 0.2s;" autocomplete="off">
+                        <button id="route-btn-origin" title="Escolher no Mapa" style="padding: 10px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: #fff; border-radius: 4px; cursor: pointer; transition: all 0.2s;">🗺️ Mapa</button>
+                    </div>
+                    <button id="route-btn-myloc" style="width: 100%; padding: 8px; background: rgba(33,150,243,0.2); border: 1px solid #2196F3; color: #fff; border-radius: 4px; text-align: center; cursor: pointer; font-size: 11px; transition: all 0.2s; margin-top: -4px;">🎯 Usar Minha Localização Atual</button>
+                    
+                    <div style="display: flex; gap: 4px;">
+                        <input type="text" id="route-search-dest" list="fazendas-list" placeholder="📍 Buscar Destino..." style="flex: 1; padding: 10px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: #fff; border-radius: 4px; font-size: 12px; transition: all 0.2s;" autocomplete="off">
+                        <button id="route-btn-dest" title="Escolher no Mapa" style="padding: 10px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: #fff; border-radius: 4px; cursor: pointer; transition: all 0.2s;">🗺️ Mapa</button>
+                    </div>
+                </div>
+                <div id="route-info" style="display: none; padding: 10px; margin-top: 4px; background: rgba(232, 93, 4, 0.1); border: 1px solid rgba(232, 93, 4, 0.3); border-radius: 6px; text-align: center; flex-direction: column; gap: 4px;">
+                    <span style="font-size: 11px; color: #f48c06; font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px;">Resumo da Rota</span>
+                    <div><span style="font-size: 12px; color: #a8b8b0;">Distância Total:</span> <strong id="route-distance-text" style="color: #fff; font-size: 14px; margin-left: 5px;">Calculando...</strong></div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+     integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+     crossorigin=""></script>
+     
+    <!-- Leaflet Routing Machine JS -->
+    <script src="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.js"></script>
+    
+    <!-- Custom JS App -->
+    <script src="app.js"></script>
+    <script src="pdf_parser.js"></script>
+</body>
+</html>
