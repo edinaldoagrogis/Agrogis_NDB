@@ -66,9 +66,10 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // Toggle labels based on zoom level and user preference
-    const ZOOM_THRESHOLD = 12; // Fazendas
-    const TALHOES_ZOOM_THRESHOLD = 14; // Talhões
-    const EQUIPES_ZOOM_THRESHOLD = 8; // Equipes
+    const isMobile = window.innerWidth <= 768;
+    const ZOOM_THRESHOLD = isMobile ? 14 : 12; // Fazendas
+    const TALHOES_ZOOM_THRESHOLD = isMobile ? 15 : 14; // Talhões
+    const EQUIPES_ZOOM_THRESHOLD = isMobile ? 10 : 8; // Equipes
     
     // Dynamic Layer Engine Stores
     const loadedLayers = {}; // Store layer objects for toggling/searching
