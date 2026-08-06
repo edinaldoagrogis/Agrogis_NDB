@@ -36,7 +36,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (window._agrogis_gpsMarker) {
                     map.flyTo(window._agrogis_gpsMarker.getLatLng(), 16, {duration: 1.5});
                 } else {
-                    map.locate({setView: true, maxZoom: 16});
+                    alert("Aguardando sinal do GPS...");
                 }
             }
             
@@ -1239,9 +1239,10 @@ document.addEventListener('DOMContentLoaded', () => {
     let gpsActive = true;
     let gpsMarker = null;
     let gpsCircle = null;
+    let hasCenteredInitialGps = false;
 
-    // Start tracking by default
-    map.locate({setView: true, maxZoom: 16, watch: true, enableHighAccuracy: true});
+    // Start tracking by default without forcing continuous centering
+    map.locate({setView: false, watch: true, enableHighAccuracy: true});
 
     map.on('locationfound', (e) => {
         if (!gpsActive) return;
@@ -1269,6 +1270,11 @@ document.addEventListener('DOMContentLoaded', () => {
             gpsMarker.setLatLng(e.latlng);
             gpsCircle.setLatLng(e.latlng);
             gpsCircle.setRadius(radius);
+        }
+        
+        if (!hasCenteredInitialGps) {
+            map.flyTo(e.latlng, 15, {duration: 1.5});
+            hasCenteredInitialGps = true;
         }
         
         // Export to window for the locate control to easily access
