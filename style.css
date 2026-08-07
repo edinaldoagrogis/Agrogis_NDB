@@ -854,3 +854,24 @@ body, html {
     0% { transform: scale(0.5); opacity: 1; }
     100% { transform: scale(1.5); opacity: 0; }
 }
+
+/* --- ROUTE ACTIVE UI CLEANUP --- */
+/* Hide all map labels when routing is active to prioritize route visibility */
+.route-active .leaflet-tooltip,
+.route-active .fazenda-transparent-label,
+.route-active .equipe-label,
+.route-active .custom-talhao-label-container {
+    display: none !important;
+    opacity: 0 !important;
+}
+
+/* Hide floating action buttons when routing */
+body:has(#map.route-active) .search-container,
+body:has(#map.route-active) .floating-layers-wrapper,
+body:has(#map.route-active) .floating-tools-wrapper,
+body:has(#map.route-active) #pdf-importer-container,
+body:has(#map.route-active) .basemap-selector,
+body:has(#map.route-active) .leaflet-control-locate,
+body:has(#map.route-active) .leaflet-control-zoom {
+    display: none !important;
+}
