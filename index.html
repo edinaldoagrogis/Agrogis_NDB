@@ -132,6 +132,23 @@
             </div>
 
             <div class="sidebar-footer">
+                <button id="btn-force-update" style="width: 100%; padding: 10px; margin-bottom: 10px; border-radius: 6px; background: rgba(232, 93, 4, 0.1); color: #e85d04; border: 1px solid rgba(232, 93, 4, 0.5); cursor: pointer; text-transform: uppercase; font-size: 11px; font-weight: bold; transition: all 0.3s;" onmouseover="this.style.background='rgba(232, 93, 4, 0.2)';" onmouseout="this.style.background='rgba(232, 93, 4, 0.1)';">🔄 Sincronizar Atualizações</button>
+                <script>
+                    document.getElementById('btn-force-update').addEventListener('click', () => {
+                        const btn = document.getElementById('btn-force-update');
+                        btn.innerHTML = '⌛ Atualizando...';
+                        if ('serviceWorker' in navigator) {
+                            navigator.serviceWorker.getRegistrations().then(function(registrations) {
+                                for(let registration of registrations) {
+                                    registration.unregister();
+                                }
+                                setTimeout(() => window.location.reload(true), 500);
+                            });
+                        } else {
+                            window.location.reload(true);
+                        }
+                    });
+                </script>
                 <p>&copy; 2026 NDB Holding Agrícola</p>
             </div>
         </aside>
