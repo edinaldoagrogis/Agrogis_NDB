@@ -8,14 +8,15 @@
   "description": "Painel de Controle Operacional Agrícola",
   "icons": [
     {
-      "src": "logo.png.jpg",
+      "src": "https://cdn-icons-png.flaticon.com/512/3256/3256083.png",
       "sizes": "192x192",
-      "type": "image/jpeg"
+      "type": "image/png"
     },
     {
-      "src": "logo.png.jpg",
+      "src": "https://cdn-icons-png.flaticon.com/512/3256/3256083.png",
       "sizes": "512x512",
-      "type": "image/jpeg"
+      "type": "image/png",
+      "purpose": "any maskable"
     }
   ]
 }

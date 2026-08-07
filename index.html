@@ -53,6 +53,7 @@
             <div id="login-error" style="color: #ff4d4d; font-size: 12px; margin-bottom: 15px; display: none;">Credenciais inválidas!</div>
             
             <button id="btn-login" style="width: 100%; padding: 12px; border-radius: 6px; background: linear-gradient(90deg, #e85d04, #f48c06); color: #fff; font-weight: bold; border: none; cursor: pointer; text-transform: uppercase; letter-spacing: 1px; transition: transform 0.2s, box-shadow 0.2s;">Entrar</button>
+            <button id="btn-install" style="width: 100%; padding: 12px; margin-top: 15px; border-radius: 6px; background: transparent; color: #e85d04; border: 1px solid #e85d04; cursor: pointer; text-transform: uppercase; font-weight: bold; display: none;">📥 Instalar no Celular</button>
         </div>
     </div>
 
@@ -358,6 +359,31 @@
                 navigator.serviceWorker.register('sw.js')
                     .then(reg => console.log('PWA Service Worker Registrado!'))
                     .catch(err => console.error('Erro no PWA Service Worker', err));
+            });
+        }
+        // PWA Install Prompt Logic
+        let deferredPrompt;
+        const installBtn = document.getElementById('btn-install');
+
+        window.addEventListener('beforeinstallprompt', (e) => {
+            // Prevent the mini-infobar from appearing on mobile
+            e.preventDefault();
+            // Stash the event so it can be triggered later.
+            deferredPrompt = e;
+            // Update UI notify the user they can install the PWA
+            if(installBtn) installBtn.style.display = 'block';
+        });
+
+        if(installBtn) {
+            installBtn.addEventListener('click', async () => {
+                if (deferredPrompt) {
+                    deferredPrompt.prompt();
+                    const { outcome } = await deferredPrompt.userChoice;
+                    if (outcome === 'accepted') {
+                        installBtn.style.display = 'none';
+                    }
+                    deferredPrompt = null;
+                }
             });
         }
     </script>
