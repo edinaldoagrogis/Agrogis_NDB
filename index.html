@@ -218,7 +218,7 @@
                         </svg>
                     </button>
 
-                    <div id="floating-layers-panel" style="display: none; position: absolute; top: 52px; right: 0; width: 340px; background: rgba(5, 8, 7, 0.95); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.08); border-radius: 16px; box-shadow: 0 8px 32px rgba(0,0,0,0.5); overflow: hidden;">
+                    <div id="floating-layers-panel" style="display: none; position: absolute; top: 52px; right: 0; width: 340px; background: rgba(5, 8, 7, 0.95); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.08); border-radius: 16px; box-shadow: 0 8px 32px rgba(0,0,0,0.5); overflow: hidden; z-index: 100;">
                         <div style="padding: 16px; border-bottom: 1px solid rgba(255,255,255,0.05); display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.02);">
                             <h3 style="margin: 0; font-size: 14px; font-weight: 600; letter-spacing: 1px; color: #fff;">CAMADAS VETORIAIS</h3>
                         </div>
@@ -238,7 +238,7 @@
                         </svg>
                     </button>
 
-                    <div id="floating-tools-panel" style="display: none; position: absolute; top: 52px; right: 0; width: 280px; background: rgba(5, 8, 7, 0.95); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.08); border-radius: 16px; box-shadow: 0 8px 32px rgba(0,0,0,0.5); overflow: hidden;">
+                    <div id="floating-tools-panel" style="display: none; position: absolute; top: 52px; right: 0; width: 280px; background: rgba(5, 8, 7, 0.95); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.08); border-radius: 16px; box-shadow: 0 8px 32px rgba(0,0,0,0.5); overflow: hidden; z-index: 100;">
                         <div style="padding: 16px; border-bottom: 1px solid rgba(255,255,255,0.05); display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.02);">
                             <h3 style="margin: 0; font-size: 14px; font-weight: 600; letter-spacing: 1px; color: #fff;">FERRAMENTAS</h3>
                         </div>
@@ -307,7 +307,8 @@
             <div id="measure-result" style="display: none; position: absolute; bottom: 40px; left: calc(50% - 150px); z-index: 1000; width: 300px; padding: 16px; background: rgba(5, 8, 7, 0.95); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; box-shadow: 0 8px 32px rgba(0,0,0,0.5); font-size: 13px; color: #a8b8b0; flex-direction: column;">
                 <div id="measure-drag-handle" style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 8px; margin-bottom: 4px; cursor: move;">
                     <span style="font-weight: 600; color: #fff; letter-spacing: 1px;">FERRAMENTA DE MEDIÇÃO</span>
-                    <div style="display: flex; gap: 8px;">
+                    <div style="display: flex; gap: 8px; align-items: center;">
+                        <button id="tool-measure-clear-icon" style="background: none; border: none; color: #f48c06; cursor: pointer; font-size: 16px; padding: 0 4px;" title="Reiniciar Medição">🔄</button>
                         <button id="min-measure-btn" style="background: none; border: none; color: #fff; cursor: pointer; font-size: 24px; padding: 0 4px; line-height: 0.5;" title="Minimizar">-</button>
                         <button id="close-measure-btn" style="background: none; border: none; color: #fff; cursor: pointer; font-size: 20px; padding: 0; line-height: 1;" title="Fechar">&times;</button>
                     </div>
@@ -328,7 +329,8 @@
             <div id="route-panel" style="display: none; position: absolute; bottom: 40px; left: calc(50% - 150px); z-index: 1000; width: 300px; padding: 16px; background: rgba(5, 8, 7, 0.95); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; box-shadow: 0 8px 32px rgba(0,0,0,0.5); font-size: 13px; color: #a8b8b0; flex-direction: column;">
                 <div id="route-drag-handle" style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 8px; margin-bottom: 4px; cursor: move;">
                     <span style="font-weight: 600; color: #fff; letter-spacing: 1px;">TRAÇAR ROTA</span>
-                    <div style="display: flex; gap: 8px;">
+                    <div style="display: flex; gap: 8px; align-items: center;">
+                        <button id="tool-route-clear-icon" style="background: none; border: none; color: #f48c06; cursor: pointer; font-size: 16px; padding: 0 4px;" title="Reiniciar Rota">🔄</button>
                         <button id="min-route-btn" style="background: none; border: none; color: #fff; cursor: pointer; font-size: 24px; padding: 0 4px; line-height: 0.5;" title="Minimizar">-</button>
                         <button id="close-route-btn" style="background: none; border: none; color: #fff; cursor: pointer; font-size: 20px; padding: 0; line-height: 1;" title="Fechar">&times;</button>
                     </div>
@@ -337,13 +339,11 @@
                     <div style="display: flex; flex-direction: column; gap: 8px;">
                         <div style="display: flex; gap: 4px;">
                             <input type="text" id="route-search-origin" list="fazendas-list" placeholder="📍 Buscar Origem..." style="flex: 1; padding: 10px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: #fff; border-radius: 4px; font-size: 12px; transition: all 0.2s;" autocomplete="off">
-                            <button id="route-btn-origin" title="Escolher no Mapa" style="padding: 10px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: #fff; border-radius: 4px; cursor: pointer; transition: all 0.2s;">🗺️ Mapa</button>
                         </div>
                         <button id="route-btn-myloc" style="width: 100%; padding: 8px; background: rgba(33,150,243,0.2); border: 1px solid #2196F3; color: #fff; border-radius: 4px; text-align: center; cursor: pointer; font-size: 11px; transition: all 0.2s; margin-top: -4px;">🎯 Usar Minha Localização Atual</button>
                         
                         <div style="display: flex; gap: 4px;">
                             <input type="text" id="route-search-dest" list="fazendas-list" placeholder="📍 Buscar Destino..." style="flex: 1; padding: 10px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: #fff; border-radius: 4px; font-size: 12px; transition: all 0.2s;" autocomplete="off">
-                            <button id="route-btn-dest" title="Escolher no Mapa" style="padding: 10px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: #fff; border-radius: 4px; cursor: pointer; transition: all 0.2s;">🗺️ Mapa</button>
                         </div>
                     </div>
                     <div id="route-info" style="display: none; padding: 10px; margin-top: 4px; background: rgba(232, 93, 4, 0.1); border: 1px solid rgba(232, 93, 4, 0.3); border-radius: 6px; text-align: center; flex-direction: column; gap: 4px;">
@@ -360,6 +360,9 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
      integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
      crossorigin=""></script>
+     
+    <!-- Leaflet Rotate Plugin -->
+    <script src="https://unpkg.com/leaflet-rotate@0.2.8/dist/leaflet-rotate.js"></script>
      
     <!-- Leaflet Routing Machine JS -->
     <script src="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.js"></script>

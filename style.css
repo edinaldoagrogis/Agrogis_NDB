@@ -1027,6 +1027,16 @@ body:has(#map.route-active) .leaflet-control-zoom {
     display: none !important;
 }
 
+/* Tool states */
+body.hide-equipes .equipe-marker,
+body.hide-equipes .avenza-marker {
+    display: none !important;
+}
+
+body.disable-map-hover .leaflet-interactive {
+    pointer-events: none !important;
+}
+
 /* ------------------- MOBILE RESPONSIVENESS ------------------- */
 @media (max-width: 768px) {
     .topbar-right .user-menu { display: none; }

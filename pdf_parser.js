@@ -4,8 +4,18 @@ document.addEventListener('DOMContentLoaded', () => {
     const loadingIndicator = document.getElementById('pdf-loading-indicator');
 
     const btnView = document.getElementById('btn-view-pdf');
+    const importerContainer = document.getElementById('pdf-importer-container');
 
     if (!btnImport || !fileInput) return;
+
+    // Show import tools only on localhost/local network
+    if (importerContainer) {
+        if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.hostname.startsWith('192.168')) {
+            importerContainer.style.display = 'block';
+        } else {
+            importerContainer.style.display = 'none';
+        }
+    }
 
     // Auto-sync global PDF
     async function syncGlobalPdf() {

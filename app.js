@@ -1,12 +1,61 @@
 // NDB Holding Agrícola Geoportal JavaScript Core (Dynamic)
 
 document.addEventListener('DOMContentLoaded', () => {
+    const isMobileApp = window.innerWidth <= 768 || /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    
     // 1. Initialize Leaflet Map
     const map = L.map('map', {
         zoomControl: true,
         attributionControl: true,
-        preferCanvas: true // Back on: 100x speed for polygons (GPS freeze fixed)
+        preferCanvas: true, // Back on: 100x speed for polygons (GPS freeze fixed)
+        rotate: isMobileApp,
+        touchRotate: isMobileApp,
+        compassBearing: isMobileApp
     }).setView([-17.8, -40.0], 7);
+    
+    // Custom Compass Control
+    const CompassControl = L.Control.extend({
+        options: { position: 'bottomright' },
+        onAdd: function(map) {
+            const container = L.DomUtil.create('div', 'leaflet-bar leaflet-control');
+            container.style.backgroundColor = 'rgba(5, 8, 7, 0.85)';
+            container.style.border = '1px solid rgba(255,255,255,0.1)';
+            container.style.width = '34px';
+            container.style.height = '34px';
+            container.style.display = 'flex';
+            container.style.justifyContent = 'center';
+            container.style.alignItems = 'center';
+            container.style.cursor = 'pointer';
+            container.style.borderRadius = '8px';
+            container.style.marginBottom = '10px';
+            container.style.backdropFilter = 'blur(12px)';
+            container.title = 'Alinhar ao Norte';
+
+            const icon = L.DomUtil.create('div', '', container);
+            icon.innerHTML = '🧭';
+            icon.style.fontSize = '20px';
+            icon.style.transition = 'transform 0.1s';
+            
+            if (typeof map.getBearing === 'function') {
+                map.on('rotate', function() {
+                    const bearing = map.getBearing();
+                    icon.style.transform = `rotate(${bearing}deg)`;
+                });
+            }
+
+            container.onclick = function(e) {
+                L.DomEvent.stopPropagation(e);
+                if (typeof map.setBearing === 'function') {
+                    map.setBearing(0);
+                }
+            };
+            return container;
+        }
+    });
+    
+    if (isMobileApp) {
+        map.addControl(new CompassControl());
+    }
     
     // Fix map rendering bug on mobile
     setTimeout(() => { map.invalidateSize(); }, 500);
@@ -1129,6 +1178,7 @@ document.addEventListener('DOMContentLoaded', () => {
         btnMeasure.style.borderColor = 'rgba(255,255,255,0.1)';
         resultPanel.style.display = 'none';
         map.getContainer().style.cursor = '';
+        document.body.classList.remove('hide-equipes', 'disable-map-hover');
         resetMeasure();
     }
 
@@ -1143,6 +1193,7 @@ document.addEventListener('DOMContentLoaded', () => {
             btnMeasure.style.borderColor = '#e85d04';
             resultPanel.style.display = 'flex';
             map.getContainer().style.cursor = 'crosshair';
+            document.body.classList.add('hide-equipes', 'disable-map-hover');
             resetMeasure();
             
             // Auto-close tools panel so user can see map clearly
@@ -1151,6 +1202,8 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     btnClear.addEventListener('click', resetMeasure);
+    const measureClearIcon = document.getElementById('tool-measure-clear-icon');
+    if (measureClearIcon) measureClearIcon.addEventListener('click', resetMeasure);
     document.getElementById('close-measure-btn').addEventListener('click', deactivateMeasure);
 
     function finishMeasurement() {
@@ -1323,27 +1376,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function setRouteSelectionMode(mode) {
         window.routeSelectionMode = mode;
-        if (btnRouteOrigin) {
-            btnRouteOrigin.style.background = mode === 'origin' ? 'rgba(232, 93, 4, 0.4)' : 'rgba(255,255,255,0.1)';
-            btnRouteOrigin.style.borderColor = mode === 'origin' ? '#e85d04' : 'rgba(255,255,255,0.2)';
-            const input = document.getElementById('route-search-origin');
-            if(input) input.style.borderColor = mode === 'origin' ? '#e85d04' : 'rgba(255,255,255,0.2)';
-        }
-        if (btnRouteDest) {
-            btnRouteDest.style.background = mode === 'dest' ? 'rgba(232, 93, 4, 0.4)' : 'rgba(255,255,255,0.1)';
-            btnRouteDest.style.borderColor = mode === 'dest' ? '#e85d04' : 'rgba(255,255,255,0.2)';
-            const input = document.getElementById('route-search-dest');
-            if(input) input.style.borderColor = mode === 'dest' ? '#e85d04' : 'rgba(255,255,255,0.2)';
-        }
+        const inputOrig = document.getElementById('route-search-origin');
+        if(inputOrig) inputOrig.style.borderColor = mode === 'origin' ? '#e85d04' : 'rgba(255,255,255,0.2)';
+        
+        const inputDest = document.getElementById('route-search-dest');
+        if(inputDest) inputDest.style.borderColor = mode === 'dest' ? '#e85d04' : 'rgba(255,255,255,0.2)';
+        
         if (mode) {
             map.getContainer().style.cursor = 'crosshair';
         } else {
             map.getContainer().style.cursor = '';
         }
     }
-
-    if (btnRouteOrigin) btnRouteOrigin.addEventListener('click', () => setRouteSelectionMode('origin'));
-    if (btnRouteDest) btnRouteDest.addEventListener('click', () => setRouteSelectionMode('dest'));
 
     const btnRouteMyLoc = document.getElementById('route-btn-myloc');
     if (btnRouteMyLoc) {
@@ -1434,15 +1478,21 @@ document.addEventListener('DOMContentLoaded', () => {
         const routeInfo = document.getElementById('route-info');
         if (routeInfo) routeInfo.style.display = 'none';
         map.getContainer().classList.remove('route-active');
+        document.body.classList.remove('hide-equipes');
     }
 
     btnRoute.addEventListener('click', () => {
         if (routePanel.style.display === 'flex' || routePanel.style.display === 'block') {
             deactivateRoute();
         } else {
+            if (typeof deactivateMeasure === 'function') deactivateMeasure();
+            
             routePanel.style.display = 'flex';
             btnRoute.style.background = 'rgba(232, 93, 4, 0.2)';
             btnRoute.style.borderColor = '#e85d04';
+            map.getContainer().classList.add('route-active');
+            document.body.classList.add('hide-equipes');
+            
             document.getElementById('floating-tools-panel').style.display = 'none';
             
             // Auto-start origin selection mode
@@ -1457,6 +1507,33 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     document.getElementById('close-route-btn').addEventListener('click', deactivateRoute);
+    
+    function resetRoute() {
+        if (routingControl) {
+            map.removeControl(routingControl);
+            routingControl = null;
+        }
+        if (rotasNdbLayer) {
+            map.removeLayer(rotasNdbLayer);
+            rotasNdbLayer = null;
+        }
+        const routeInfo = document.getElementById('route-info');
+        if (routeInfo) routeInfo.style.display = 'none';
+        
+        routeOriginData = null;
+        routeDestData = null;
+        
+        const origInput = document.getElementById('route-search-origin');
+        if (origInput) origInput.value = '';
+        
+        const destInput = document.getElementById('route-search-dest');
+        if (destInput) destInput.value = '';
+        
+        setRouteSelectionMode('origin');
+    }
+    
+    const routeClearIcon = document.getElementById('tool-route-clear-icon');
+    if (routeClearIcon) routeClearIcon.addEventListener('click', resetRoute);
     
     // (Route map click to close removed per user request)
 
