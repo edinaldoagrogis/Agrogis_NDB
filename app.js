@@ -381,7 +381,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // Create Map Layer
             const mapLayer = L.geoJSON(data, {
-                smoothFactor: isMobile ? 2.5 : 1.5, // Simplifies polygon geometry for massive mobile FPS gain
+                smoothFactor: isMobile ? 3.5 : 1.5, // Simplifies polygon geometry for massive mobile FPS gain
                 style: styleFunc,
                 pointToLayer: function (feature, latlng) {
                     if (isEquipe) {
@@ -1500,6 +1500,11 @@ document.addEventListener('DOMContentLoaded', () => {
     function calculateRoute() {
         if (!routeOriginData || !routeDestData) {
             alert('Por favor, selecione origem e destino clicando no mapa.');
+            return;
+        }
+        
+        if (!navigator.onLine) {
+            alert("⚠️ Você está offline.\n\nO traçado de rotas por estradas exige internet. \nPara medir distâncias offline, utilize a ferramenta de MEDIÇÃO (ícone de régua).");
             return;
         }
         
