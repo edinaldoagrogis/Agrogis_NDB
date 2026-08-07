@@ -992,7 +992,14 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         if (hasMatches && bounds.isValid()) {
-            map.flyToBounds(bounds, { padding: [50, 50], duration: 1.5 });
+            const rightPadding = window.innerWidth > 768 ? 450 : 50; // Account for right sidebar on PC
+            const bottomPadding = window.innerWidth <= 768 ? 300 : 50; // Account for bottom tools on mobile
+            
+            map.flyToBounds(bounds, { 
+                paddingBottomRight: [rightPadding, bottomPadding],
+                paddingTopLeft: [50, 50],
+                duration: 1.5 
+            });
         }
     });
 
