@@ -5,6 +5,14 @@ document.addEventListener('DOMContentLoaded', () => {
     const inputPassword = document.getElementById('login-password');
     const loginError = document.getElementById('login-error');
     const pdfImporter = document.getElementById('pdf-importer-container');
+    const rememberCheckbox = document.getElementById('login-remember');
+
+    // Check if user previously checked "Manter-me conectado"
+    const savedLevel = localStorage.getItem('agrogis_access_level');
+    if (savedLevel) {
+        grantAccess(parseInt(savedLevel));
+        return; // Stop further auth setup if already granted
+    }
 
     // Removing automatic bypass: Always ask for password!
     // The browser's native password manager will auto-fill credentials instead.
@@ -80,8 +88,10 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function grantAccess(level) {
-        // Save level to persist session
-        localStorage.setItem('agrogis_access_level', level);
+        // Save level to persist session ONLY if checkbox is checked
+        if (rememberCheckbox && rememberCheckbox.checked) {
+            localStorage.setItem('agrogis_access_level', level);
+        }
 
         // Hide login modal smoothly
         if (loginOverlay) {
