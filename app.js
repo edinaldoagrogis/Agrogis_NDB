@@ -168,11 +168,21 @@ document.addEventListener('DOMContentLoaded', () => {
             
             if (talhoesEnabled && zoom >= TALHOES_ZOOM_THRESHOLD) {
                 const bounds = map.getBounds().pad(0.1); // smaller pad for faster checks
+                let visibleCount = 0;
+                const maxLabels = isMobile ? 50 : 300; // FPS LIMITER - PREVENTS LAG
+                
                 for (const marker of layerLabels.TALHOES) {
                     const isVisible = bounds.contains(marker.getLatLng());
                     const hasLayer = activeLabelGroups.TALHOES.hasLayer(marker);
-                    if (isVisible && !hasLayer) {
-                        activeLabelGroups.TALHOES.addLayer(marker);
+                    
+                    if (isVisible) {
+                        if (visibleCount < maxLabels) {
+                            if (!hasLayer) activeLabelGroups.TALHOES.addLayer(marker);
+                            visibleCount++;
+                        } else {
+                            // If we exceed the cap, remove it to save RAM
+                            if (hasLayer) activeLabelGroups.TALHOES.removeLayer(marker);
+                        }
                     } else if (!isVisible && hasLayer) {
                         activeLabelGroups.TALHOES.removeLayer(marker);
                     }
