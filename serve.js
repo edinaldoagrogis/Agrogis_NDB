@@ -2,6 +2,9 @@ const http = require('http');
 const fs = require('fs');
 const path = require('path');
 const os = require('os');
+const { exec } = require('child_process');
+const path = require('path');
+const os = require('os');
 
 const PORT = 8080;
 
@@ -19,7 +22,55 @@ const mimeTypes = {
 
 const server = http.createServer((request, response) => {
     console.log(`Recebendo requisição para: ${request.url}`);
-    
+    // Enable CORS
+    response.setHeader('Access-Control-Allow-Origin', '*');
+    response.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+    response.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+
+    if (request.method === 'OPTIONS') {
+        response.writeHead(204);
+        response.end();
+        return;
+    }
+
+    if (request.method === 'POST' && request.url === '/upload-pdf') {
+        const filePathToSave = path.join(__dirname, 'programacao.pdf');
+        const fileStream = fs.createWriteStream(filePathToSave);
+
+        request.pipe(fileStream);
+
+        request.on('end', () => {
+            console.log('✅ PDF recebido com sucesso e salvo como programacao.pdf');
+            
+            // Execute git commands
+            console.log('🔄 Sincronizando com a nuvem (git push)...');
+            exec('git add programacao.pdf && git commit -m "Atualizando programacao global via portal" && git push', (error, stdout, stderr) => {
+                if (error) {
+                    console.error(`❌ Erro no git push: ${error.message}`);
+                    response.writeHead(500, { 'Content-Type': 'application/json' });
+                    response.end(JSON.stringify({ success: false, error: error.message }));
+                    return;
+                }
+                if (stderr) {
+                    console.log(`Git (stderr): ${stderr}`);
+                }
+                console.log(`Git (stdout): ${stdout}`);
+                console.log('✅ Sincronização concluída!');
+                
+                response.writeHead(200, { 'Content-Type': 'application/json' });
+                response.end(JSON.stringify({ success: true, message: 'Programação sincronizada para todos!' }));
+            });
+        });
+
+        request.on('error', (err) => {
+            console.error('❌ Erro no upload:', err);
+            response.writeHead(500);
+            response.end(JSON.stringify({ success: false, error: err.message }));
+        });
+
+        return; // Don't continue to static file serving
+    }
+
     let filePath = '.' + request.url;
     if (filePath === './') {
         filePath = './index.html';

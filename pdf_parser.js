@@ -7,6 +7,45 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (!btnImport || !fileInput) return;
 
+    // Auto-sync global PDF
+    async function syncGlobalPdf() {
+        try {
+            const res = await fetch('./programacao.pdf', { cache: 'no-cache' });
+            if (!res.ok) return;
+            
+            const arrayBuffer = await res.arrayBuffer();
+            
+            const uint8Array = new Uint8Array(arrayBuffer);
+            let binary = '';
+            for (let i = 0; i < uint8Array.byteLength; i++) {
+                binary += String.fromCharCode(uint8Array[i]);
+            }
+            const base64 = btoa(binary);
+            
+            const currentSaved = localStorage.getItem('geoportal_current_pdf');
+            if (base64 === currentSaved) {
+                return; // Já está sincronizado
+            }
+            
+            console.log("Novidade: PDF Global Encontrado. Sincronizando...");
+            
+            const blob = new Blob([arrayBuffer], { type: 'application/pdf' });
+            const file = new File([blob], "programacao.pdf", { type: 'application/pdf' });
+            
+            const dataTransfer = new DataTransfer();
+            dataTransfer.items.add(file);
+            fileInput.files = dataTransfer.files;
+            
+            // Dispara o evento change para o parser fazer o resto
+            const event = new Event('change');
+            fileInput.dispatchEvent(event);
+            
+        } catch (e) {
+            console.warn("Nenhuma programacao.pdf global encontrada ou erro ao sincronizar.", e);
+        }
+    }
+    syncGlobalPdf();
+
     // Check if there's a saved PDF
     const savedPdfBase64 = localStorage.getItem('geoportal_current_pdf');
     if (savedPdfBase64 && btnView) {
@@ -48,6 +87,27 @@ document.addEventListener('DOMContentLoaded', () => {
         if (btnView) btnView.style.display = 'none';
 
         try {
+            // Se estiver no servidor local, tenta enviar o arquivo para salvar e dar git push!
+            if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.hostname.startsWith('192.168')) {
+                try {
+                    const uploadResponse = await fetch('http://' + window.location.host + '/upload-pdf', {
+                        method: 'POST',
+                        body: file,
+                        headers: {
+                            'Content-Type': 'application/pdf'
+                        }
+                    });
+                    const uploadResult = await uploadResponse.json();
+                    if (uploadResult.success) {
+                        alert('✅ ' + uploadResult.message);
+                    } else {
+                        alert('❌ Falha na sincronização: ' + uploadResult.error);
+                    }
+                } catch (e) {
+                    console.warn('Servidor local não detectado para sincronização.');
+                }
+            }
+
             // Save PDF for viewing later
             const reader = new FileReader();
             reader.readAsDataURL(file);
