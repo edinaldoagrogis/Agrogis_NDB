@@ -1,14 +1,14 @@
 // NDB Holding Agrícola Geoportal JavaScript Core (Dynamic)
 
 document.addEventListener('DOMContentLoaded', () => {
-    const isMobileApp = window.innerWidth <= 768 || /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    const isTouchDevice = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
     
     // 1. Initialize Leaflet Map
     const map = L.map('map', {
         zoomControl: true,
         attributionControl: true,
-        preferCanvas: true, // Back on: 100x speed for polygons (GPS freeze fixed)
-        rotate: isMobileApp,
+        preferCanvas: true,
+        rotate: isTouchDevice,
         touchRotate: false // Disabled by default, toggled by compass
     }).setView([-17.8, -40.0], 7);
     
@@ -70,7 +70,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
     
-    if (isMobileApp) {
+    if (isTouchDevice) {
         map.addControl(new CompassControl());
     }
     
