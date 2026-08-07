@@ -9,6 +9,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Load saved passwords from localStorage (Custom Password Manager)
     let savedPasswords = JSON.parse(localStorage.getItem('agrogis_saved_passwords') || '{}');
+    
+    // Check persistent login
+    const savedAuthLevel = localStorage.getItem('agrogis_auth_level');
+    if (savedAuthLevel) {
+        // Delay slightly to ensure DOM is fully ready before hiding
+        setTimeout(() => grantAccess(parseInt(savedAuthLevel)), 50);
+    }
 
     // Auto-fill password on load if username is already selected and saved
     if (savedPasswords[inputUsername.value]) {
@@ -67,6 +74,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const btnLogout = document.getElementById('btn-logout');
     if (btnLogout) {
         btnLogout.addEventListener('click', () => {
+            localStorage.removeItem('agrogis_auth_level');
             window.location.reload();
         });
     }
@@ -110,6 +118,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function grantAccess(level) {
+        // Save persistent login
+        localStorage.setItem('agrogis_auth_level', level);
 
         // Hide login modal smoothly
         if (loginOverlay) {
