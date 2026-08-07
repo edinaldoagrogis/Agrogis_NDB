@@ -1,4 +1,4 @@
-const CACHE_NAME = 'agrogis-v6';
+const CACHE_NAME = 'agrogis-v8';
 
 // Core assets to pre-cache when the Service Worker installs
 const PRECACHE_URLS = [
@@ -11,7 +11,7 @@ const PRECACHE_URLS = [
     './layers_data.js',
     './manifest.json',
     './icone_drone.png.png',
-    './logo.png.png',
+    './nova_logo.png',
     'https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap',
     'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css',
     'https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.css',
