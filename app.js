@@ -9,53 +9,8 @@ document.addEventListener('DOMContentLoaded', () => {
         attributionControl: true,
         preferCanvas: true, // Back on: 100x speed for polygons (GPS freeze fixed)
         rotate: isMobileApp,
-        touchRotate: isMobileApp,
-        compassBearing: isMobileApp
+        touchRotate: isMobileApp
     }).setView([-17.8, -40.0], 7);
-    
-    // Custom Compass Control
-    const CompassControl = L.Control.extend({
-        options: { position: 'bottomright' },
-        onAdd: function(map) {
-            const container = L.DomUtil.create('div', 'leaflet-bar leaflet-control');
-            container.style.backgroundColor = 'rgba(5, 8, 7, 0.85)';
-            container.style.border = '1px solid rgba(255,255,255,0.1)';
-            container.style.width = '34px';
-            container.style.height = '34px';
-            container.style.display = 'flex';
-            container.style.justifyContent = 'center';
-            container.style.alignItems = 'center';
-            container.style.cursor = 'pointer';
-            container.style.borderRadius = '8px';
-            container.style.marginBottom = '10px';
-            container.style.backdropFilter = 'blur(12px)';
-            container.title = 'Alinhar ao Norte';
-
-            const icon = L.DomUtil.create('div', '', container);
-            icon.innerHTML = '🧭';
-            icon.style.fontSize = '20px';
-            icon.style.transition = 'transform 0.1s';
-            
-            if (typeof map.getBearing === 'function') {
-                map.on('rotate', function() {
-                    const bearing = map.getBearing();
-                    icon.style.transform = `rotate(${bearing}deg)`;
-                });
-            }
-
-            container.onclick = function(e) {
-                L.DomEvent.stopPropagation(e);
-                if (typeof map.setBearing === 'function') {
-                    map.setBearing(0);
-                }
-            };
-            return container;
-        }
-    });
-    
-    if (isMobileApp) {
-        map.addControl(new CompassControl());
-    }
     
     // Fix map rendering bug on mobile
     setTimeout(() => { map.invalidateSize(); }, 500);
@@ -85,6 +40,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
             container.onclick = function(e){
                 L.DomEvent.stopPropagation(e);
+                
+                if (typeof map.setBearing === 'function') {
+                    map.setBearing(0); // Reset rotation to North
+                }
+                
                 if (window._agrogis_gpsMarker) {
                     map.flyTo(window._agrogis_gpsMarker.getLatLng(), 16, {duration: 1.5});
                 } else {
