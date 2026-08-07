@@ -5,14 +5,27 @@ document.addEventListener('DOMContentLoaded', () => {
     const inputPassword = document.getElementById('login-password');
     const loginError = document.getElementById('login-error');
     const pdfImporter = document.getElementById('pdf-importer-container');
-    const rememberCheckbox = document.getElementById('login-remember');
+    const rememberCheckbox = document.getElementById('login-save-password');
 
-    // Check if user previously checked "Manter-me conectado"
-    const savedLevel = localStorage.getItem('agrogis_access_level');
-    if (savedLevel) {
-        grantAccess(parseInt(savedLevel));
-        return; // Stop further auth setup if already granted
+    // Load saved passwords from localStorage (Custom Password Manager)
+    let savedPasswords = JSON.parse(localStorage.getItem('agrogis_saved_passwords') || '{}');
+
+    // Auto-fill password on load if username is already selected and saved
+    if (savedPasswords[inputUsername.value]) {
+        inputPassword.value = savedPasswords[inputUsername.value];
+        if (rememberCheckbox) rememberCheckbox.checked = true;
     }
+
+    // Auto-fill password when user changes dropdown
+    inputUsername.addEventListener('change', () => {
+        if (savedPasswords[inputUsername.value]) {
+            inputPassword.value = savedPasswords[inputUsername.value];
+            if (rememberCheckbox) rememberCheckbox.checked = true;
+        } else {
+            inputPassword.value = '';
+            if (rememberCheckbox) rememberCheckbox.checked = false;
+        }
+    });
 
     // Removing automatic bypass: Always ask for password!
     // The browser's native password manager will auto-fill credentials instead.
@@ -54,7 +67,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const btnLogout = document.getElementById('btn-logout');
     if (btnLogout) {
         btnLogout.addEventListener('click', () => {
-            localStorage.removeItem('agrogis_access_level');
             window.location.reload();
         });
     }
@@ -62,6 +74,16 @@ document.addEventListener('DOMContentLoaded', () => {
     function performLogin() {
         const user = inputUsername.value.trim();
         const pass = inputPassword.value.trim();
+
+        // Manage saved password
+        if (rememberCheckbox) {
+            if (rememberCheckbox.checked) {
+                savedPasswords[user] = pass;
+            } else {
+                delete savedPasswords[user];
+            }
+            localStorage.setItem('agrogis_saved_passwords', JSON.stringify(savedPasswords));
+        }
 
         // Nível 1: Apenas Visualizar
         if (user === 'AGROGIS_NDB' && pass === 'AGROGIS_NDB') {
@@ -88,10 +110,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function grantAccess(level) {
-        // Save level to persist session ONLY if checkbox is checked
-        if (rememberCheckbox && rememberCheckbox.checked) {
-            localStorage.setItem('agrogis_access_level', level);
-        }
 
         // Hide login modal smoothly
         if (loginOverlay) {
