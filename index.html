@@ -73,32 +73,37 @@
 
     <div class="app-container">
         <!-- Sidebar Panel -->
-        <!-- Top Navigation Bar -->
-        <header class="topbar">
-            <div class="topbar-left">
-                <img src="logo.png.jpg" alt="AGROGIS Logo" class="topbar-logo">
-                <div class="topbar-title">Painel de Controle Operacional Agrícola</div>
+        <!-- Slim Toolbar (ArcGIS Style) -->
+        <div class="slim-toolbar">
+            <div class="toolbar-top">
+                <div class="toolbar-logo">
+                    <img src="logo.png.jpg" alt="AGROGIS Logo">
+                </div>
+                <button class="toolbar-btn" id="btn-mapa" title="Visualização Central do Mapa">
+                    🗺️
+                </button>
+                <button class="toolbar-btn" id="btn-programacao" title="Programação Operacional">
+                    📋
+                </button>
             </div>
             
-            <nav class="topbar-center">
-                <button class="topbar-tab active" id="tab-mapa">🗺️ Mapa Central</button>
-                <button class="topbar-tab" id="tab-programacao">📋 Programação Operacional</button>
-            </nav>
-            
-            <div class="topbar-right">
-                <button id="btn-logout" class="btn-logout-top" title="Sair do sistema">Sair</button>
+            <div class="toolbar-bottom">
+                <button class="toolbar-btn" id="btn-logout" title="Sair do sistema">
+                    🚪
+                </button>
             </div>
-        </header>
+        </div>
 
-        <!-- Floating Panel for Tools (hidden by default, opens when tab-programacao is clicked) -->
-        <div class="floating-panel" id="tools-panel" style="display: none;">
-            <div class="panel-header">
-                <h2>Programação de Serviço</h2>
-                <button id="close-panel" class="close-btn">✖</button>
+        <!-- Drawer Panel (Expandable) -->
+        <div class="drawer-panel" id="drawer-panel">
+            <div class="drawer-header">
+                <h2>Ferramentas</h2>
+                <button id="close-drawer" class="close-drawer-btn">✖</button>
             </div>
-            <div class="panel-content">
+            
+            <div class="drawer-content">
                 <!-- PDF Importer -->
-                <div class="pdf-importer-container" id="pdf-importer-container" style="padding: 15px 0; display: none;">
+                <div class="pdf-importer-container" id="pdf-importer-container" style="padding: 15px 20px; display: none;">
                     <div style="display: flex; gap: 8px; align-items: center;">
                         <button id="btn-import-pdf" class="btn-import-pdf" style="flex-grow: 1; display: flex; justify-content: center; align-items: center; gap: 6px; border-radius: 50px; background: linear-gradient(90deg, #e85d04, #f48c06); color: #fff; font-weight: 700; border: none; padding: 10px 16px; box-shadow: 0 2px 8px rgba(232, 93, 4, 0.2); text-transform: uppercase; letter-spacing: 0.5px; font-size: 11px; transition: all 0.3s ease; cursor: pointer;">
                             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -116,7 +121,7 @@
 
                 <!-- Programação de Serviço List -->
                 <div class="service-schedule-section">
-                    <div id="programacao-list" class="accordion-container">
+                    <div id="programacao-list" class="accordion-container" style="padding: 0 20px;">
                         <!-- Accordions will be generated here by app.js -->
                     </div>
                 </div>
@@ -124,24 +129,34 @@
         </div>
 
         <script>
-            // Topbar Tab Logic
-            document.getElementById('tab-programacao').addEventListener('click', function() {
-                document.getElementById('tools-panel').style.display = 'flex';
-                this.classList.add('active');
-                document.getElementById('tab-mapa').classList.remove('active');
+            // Slim Toolbar Logic
+            const drawer = document.getElementById('drawer-panel');
+            const btnProg = document.getElementById('btn-programacao');
+            const btnMapa = document.getElementById('btn-mapa');
+            
+            function openDrawer() {
+                drawer.classList.add('open');
+                btnProg.classList.add('active');
+                btnMapa.classList.remove('active');
+            }
+            
+            function closeDrawer() {
+                drawer.classList.remove('open');
+                btnProg.classList.remove('active');
+                btnMapa.classList.add('active');
+            }
+
+            btnProg.addEventListener('click', function() {
+                if (drawer.classList.contains('open')) {
+                    closeDrawer();
+                } else {
+                    openDrawer();
+                    document.querySelector('.drawer-header h2').innerText = 'Programação';
+                }
             });
 
-            document.getElementById('tab-mapa').addEventListener('click', function() {
-                document.getElementById('tools-panel').style.display = 'none';
-                this.classList.add('active');
-                document.getElementById('tab-programacao').classList.remove('active');
-            });
-
-            document.getElementById('close-panel').addEventListener('click', function() {
-                document.getElementById('tools-panel').style.display = 'none';
-                document.getElementById('tab-mapa').classList.add('active');
-                document.getElementById('tab-programacao').classList.remove('active');
-            });
+            btnMapa.addEventListener('click', closeDrawer);
+            document.getElementById('close-drawer').addEventListener('click', closeDrawer);
         </script>
 
         <!-- Map Container -->
