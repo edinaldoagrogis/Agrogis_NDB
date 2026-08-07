@@ -402,11 +402,11 @@ document.addEventListener('DOMContentLoaded', () => {
                                 icon: L.divIcon({
                                     className: 'equipe-marker',
                                     html: `<div class="equipe-icon-container" style="background: transparent; border: none; box-shadow: none;">
-                                               <img src="${iconUrl}" style="width: 48px; height: 48px; border-radius: 50%; border: 3px solid #e85d04; box-shadow: 0 6px 12px rgba(232,93,4,0.4); object-fit: contain; background: #fff;">
-                                               <div class="equipe-label" style="bottom: -20px; font-size: 11px; background: rgba(0,0,0,0.8); border: 1px solid #e85d04;">${feature.properties.nome}</div>
+                                               <img src="${iconUrl}" style="width: 32px; height: 32px; border-radius: 50%; border: 2px solid #e85d04; box-shadow: 0 4px 8px rgba(232,93,4,0.4); object-fit: contain; background: #fff;">
+                                               <div class="equipe-label" style="bottom: -16px; font-size: 10px; padding: 2px 4px; background: rgba(0,0,0,0.8); border: 1px solid #e85d04;">${feature.properties.nome}</div>
                                            </div>`,
-                                    iconSize: [48, 48],
-                                    iconAnchor: [24, 24]
+                                    iconSize: [32, 32],
+                                    iconAnchor: [16, 16]
                                 })
                             });
                         }
@@ -418,12 +418,12 @@ document.addEventListener('DOMContentLoaded', () => {
                         }
 
                         const avenzaPinSVG = `
-                            <div style="position: relative; width: 32px; height: 42px; left: -16px; top: -42px;">
-                                <svg viewBox="0 0 32 42" width="32" height="42" xmlns="http://www.w3.org/2000/svg" style="filter: drop-shadow(0px 3px 3px rgba(0,0,0,0.5));">
+                            <div style="position: relative; width: 24px; height: 32px; left: -12px; top: -32px;">
+                                <svg viewBox="0 0 32 42" width="24" height="32" xmlns="http://www.w3.org/2000/svg" style="filter: drop-shadow(0px 2px 2px rgba(0,0,0,0.5));">
                                     <path d="M16 0C7.163 0 0 7.163 0 16c0 10.5 16 26 16 26s16-15.5 16-26C32 7.163 24.837 0 16 0z" fill="${pinColor}" stroke="#ffffff" stroke-width="1.5"/>
                                     <circle cx="16" cy="16" r="6" fill="#ffffff"/>
                                 </svg>
-                                <div style="position: absolute; top: 44px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.75); color: #fff; padding: 3px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; white-space: nowrap; border: 1px solid rgba(255,255,255,0.2); box-shadow: 0 2px 4px rgba(0,0,0,0.5); font-family: 'Inter', Arial, sans-serif;">
+                                <div style="position: absolute; top: 34px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.75); color: #fff; padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: bold; white-space: nowrap; border: 1px solid rgba(255,255,255,0.2); box-shadow: 0 2px 4px rgba(0,0,0,0.5); font-family: 'Inter', Arial, sans-serif;">
                                     ${feature.properties.nome.split(' ')[0]}
                                 </div>
                             </div>
