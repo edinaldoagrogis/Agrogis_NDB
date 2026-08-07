@@ -513,7 +513,12 @@ document.addEventListener('DOMContentLoaded', () => {
                                 return;
                             }
 
-                            // If we are NOT tracing a route, open the attribute table popup
+                            // If we are measuring, ignore the polygon click and let it bubble to the map!
+                            if (window.measureActive) {
+                                return;
+                            }
+
+                            // If we are NOT tracing a route or measuring, open the attribute table popup
                             L.popup({ autoPanPadding: [50, 50] })
                                 .setLatLng(e.latlng)
                                 .setContent(createPopupContent(title, props))
@@ -1118,6 +1123,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function deactivateMeasure() {
         measureActive = false;
+        window.measureActive = false;
         measureFinished = false;
         btnMeasure.style.background = 'rgba(255,255,255,0.05)';
         btnMeasure.style.borderColor = 'rgba(255,255,255,0.1)';
@@ -1131,6 +1137,7 @@ document.addEventListener('DOMContentLoaded', () => {
             deactivateMeasure();
         } else {
             measureActive = true;
+            window.measureActive = true;
             measureFinished = false;
             btnMeasure.style.background = 'rgba(232, 93, 4, 0.2)';
             btnMeasure.style.borderColor = '#e85d04';
