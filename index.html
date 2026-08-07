@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Agrogis_NDB</title>
     
     <!-- PWA Manifest & Icons -->
@@ -72,96 +72,118 @@
     </div>
 
     <div class="app-container">
-        <!-- Sidebar Panel -->
-        <!-- Slim Toolbar (ArcGIS Style) -->
-        <div class="slim-toolbar">
-            <div class="toolbar-top">
-                <div class="toolbar-logo">
-                    <img src="logo.png.jpg" alt="AGROGIS Logo">
+        <!-- Light Theme Topbar -->
+        <header class="topbar-light">
+            <div class="topbar-left">
+            </div>
+            <div class="topbar-center">
+                <div style="font-size: 26px; letter-spacing: 2px; display: flex; align-items: center;">
+                    <span class="logo-agro">AGRO</span><span class="logo-gis">GIS</span>
                 </div>
-                <button class="toolbar-btn" id="btn-mapa" title="Visualização Central do Mapa">
-                    🗺️
-                </button>
-                <button class="toolbar-btn" id="btn-programacao" title="Programação Operacional">
-                    📋
-                </button>
             </div>
-            
-            <div class="toolbar-bottom">
-                <button class="toolbar-btn" id="btn-logout" title="Sair do sistema">
-                    🚪
-                </button>
+            <div class="topbar-right">
+                <div class="user-menu">
+                    <button id="btn-logout" class="text-btn">Sair do Sistema</button>
+                </div>
             </div>
-        </div>
+        </header>
 
-        <!-- Drawer Panel (Expandable) -->
-        <div class="drawer-panel" id="drawer-panel">
-            <div class="drawer-header">
-                <h2>Ferramentas</h2>
-                <button id="close-drawer" class="close-drawer-btn">✖</button>
+        <div class="main-content">
+            <!-- Slim Toolbar (Light Theme) -->
+            <div class="slim-toolbar">
+                <div class="toolbar-top">
+                    <button class="toolbar-btn" id="btn-mapa" title="Visualização Central do Mapa">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21"></polygon><line x1="9" y1="3" x2="9" y2="18"></line><line x1="15" y1="6" x2="15" y2="21"></line></svg>
+                    </button>
+                    <button class="toolbar-btn" id="btn-programacao" title="Programação Operacional">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                    </button>
+                </div>
             </div>
-            
-            <div class="drawer-content">
-                <!-- PDF Importer -->
-                <div class="pdf-importer-container" id="pdf-importer-container" style="padding: 15px 20px; display: none;">
-                    <div style="display: flex; gap: 8px; align-items: center;">
-                        <button id="btn-import-pdf" class="btn-import-pdf" style="flex-grow: 1; display: flex; justify-content: center; align-items: center; gap: 6px; border-radius: 50px; background: linear-gradient(90deg, #e85d04, #f48c06); color: #fff; font-weight: 700; border: none; padding: 10px 16px; box-shadow: 0 2px 8px rgba(232, 93, 4, 0.2); text-transform: uppercase; letter-spacing: 0.5px; font-size: 11px; transition: all 0.3s ease; cursor: pointer;">
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-                                <polyline points="14 2 14 8 20 8"></polyline>
-                                <text x="7.5" y="16.5" font-size="6.5" font-family="Arial, sans-serif" font-weight="900" stroke="none" fill="currentColor">PDF</text>
-                            </svg>
-                            Importar Programação
-                        </button>
-                        <button id="btn-view-pdf" class="btn-view-pdf" style="display: none; width: 34px; height: 34px; border-radius: 50%; padding: 0; display: flex; justify-content: center; align-items: center; background: rgba(255,255,255,0.05); color: #fff; border: 1px solid rgba(255,255,255,0.1); cursor: pointer; transition: all 0.3s ease; flex-shrink: 0;" title="Visualizar PDF Atual">👁️</button>
+
+            <!-- Drawer Panel -->
+            <div class="drawer-panel" id="drawer-panel">
+                <div class="drawer-header" style="display: flex; flex-direction: column; gap: 12px; align-items: flex-start; padding: 20px;">
+                    <div style="display: flex; justify-content: flex-end; width: 100%; align-items: center; display: none;">
                     </div>
-                    <input type="file" id="pdf-file-input" accept=".pdf" style="display: none;">
-                    <div id="pdf-loading-indicator" style="display: none; color: #e85d04; font-size: 11px; margin-top: 8px; text-align: center;">⚙️ Processando PDF...</div>
+                    <h2 id="drawer-title" style="margin: 0; color: #8fa89b; font-size: 12px; text-transform: uppercase; letter-spacing: 1px;">Programação de Serviço</h2>
                 </div>
+                
+                <div class="drawer-content">
+                    <!-- PDF Importer -->
+                    <div class="pdf-importer-container" id="pdf-importer-container" style="padding: 15px 20px; display: none;">
+                        <div style="display: flex; gap: 8px; align-items: center;">
+                            <button id="btn-import-pdf" class="btn-import-pdf" style="flex-grow: 1; display: flex; justify-content: center; align-items: center; gap: 6px; border-radius: 4px; background: #00965e; color: #fff; font-weight: 700; border: none; padding: 10px 16px; box-shadow: 0 2px 4px rgba(0, 150, 94, 0.2); text-transform: uppercase; letter-spacing: 0.5px; font-size: 11px; transition: all 0.3s ease; cursor: pointer;">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
+                                Nova Programação
+                            </button>
+                            <button id="btn-view-pdf" class="btn-view-pdf" style="display: none; width: 34px; height: 34px; border-radius: 4px; padding: 0; display: flex; justify-content: center; align-items: center; background: #e0e0e0; color: #333; border: none; cursor: pointer; transition: all 0.3s ease; flex-shrink: 0;" title="Visualizar PDF Atual">👁️</button>
+                        </div>
+                        <input type="file" id="pdf-file-input" accept=".pdf" style="display: none;">
+                        <div id="pdf-loading-indicator" style="display: none; color: #00965e; font-size: 11px; margin-top: 8px; text-align: center;">⚙️ Processando PDF...</div>
+                    </div>
 
-                <!-- Programação de Serviço List -->
-                <div class="service-schedule-section">
-                    <div id="programacao-list" class="accordion-container" style="padding: 0 20px;">
-                        <!-- Accordions will be generated here by app.js -->
+                    <!-- Programação de Serviço List -->
+                    <div class="service-schedule-section">
+                        <div id="programacao-list" class="accordion-container" style="padding: 0 20px;">
+                            <!-- Accordions will be generated here by app.js -->
+                        </div>
                     </div>
                 </div>
+
+                <!-- Green Collapse Toggle on the edge -->
+                <button class="drawer-toggle-btn" id="drawer-toggle-btn">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"></polyline></svg>
+                </button>
             </div>
-        </div>
 
-        <script>
-            // Slim Toolbar Logic
-            const drawer = document.getElementById('drawer-panel');
-            const btnProg = document.getElementById('btn-programacao');
-            const btnMapa = document.getElementById('btn-mapa');
-            
-            function openDrawer() {
-                drawer.classList.add('open');
-                btnProg.classList.add('active');
-                btnMapa.classList.remove('active');
-            }
-            
-            function closeDrawer() {
-                drawer.classList.remove('open');
-                btnProg.classList.remove('active');
-                btnMapa.classList.add('active');
-            }
-
-            btnProg.addEventListener('click', function() {
-                if (drawer.classList.contains('open')) {
-                    closeDrawer();
-                } else {
-                    openDrawer();
-                    document.querySelector('.drawer-header h2').innerText = 'Programação';
+            <script>
+                // Drawer Logic
+                const drawer = document.getElementById('drawer-panel');
+                const btnProg = document.getElementById('btn-programacao');
+                const btnMapa = document.getElementById('btn-mapa');
+                const btnToggle = document.getElementById('drawer-toggle-btn');
+                
+                function openDrawer() {
+                    drawer.classList.add('open');
+                    if (btnProg) btnProg.classList.add('active');
+                    if (btnMapa) btnMapa.classList.remove('active');
                 }
-            });
+                
+                function closeDrawer() {
+                    drawer.classList.remove('open');
+                    if (btnProg) btnProg.classList.remove('active');
+                    if (btnMapa) btnMapa.classList.add('active');
+                }
 
-            btnMapa.addEventListener('click', closeDrawer);
-            document.getElementById('close-drawer').addEventListener('click', closeDrawer);
-        </script>
+                if (btnProg) {
+                    btnProg.addEventListener('click', function() {
+                        if (drawer.classList.contains('open')) {
+                            closeDrawer();
+                        } else {
+                            openDrawer();
+                        }
+                    });
+                }
 
-        <!-- Map Container -->
-        <main class="map-wrapper">
-            <div id="map"></div>
+                if (btnMapa) btnMapa.addEventListener('click', closeDrawer);
+                if (btnToggle) {
+                    btnToggle.addEventListener('click', function() {
+                        if (drawer.classList.contains('open')) {
+                            closeDrawer();
+                        } else {
+                            openDrawer();
+                        }
+                    });
+                }
+                
+                // Open drawer by default for the new Light theme look
+                setTimeout(openDrawer, 500);
+            </script>
+
+            <!-- Map Container -->
+            <main class="map-wrapper">
+                <div id="map"></div>
             <!-- Floating Top Right Wrapper -->
             <div class="top-right-wrapper" style="position: absolute; top: 24px; right: 24px; z-index: 1000; display: flex; flex-direction: column; align-items: flex-end; gap: 12px;">
                 
@@ -331,7 +353,8 @@
                 </div>
             </div>
         </main>
-    </div>
+    </div> <!-- /main-content -->
+</div> <!-- /app-container -->
 
     <!-- Leaflet JS -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
