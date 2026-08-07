@@ -48,7 +48,10 @@
             <img src="logo.png.jpg" alt="AGROGIS Logo" style="width: 250px; margin-bottom: 30px; mix-blend-mode: screen;">
             
             <form id="login-form" style="width: 100%; position: relative;">
-                <input type="text" id="login-username" autocomplete="username" placeholder="Usuário" style="width: 100%; padding: 12px 15px; margin-bottom: 15px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.2); color: #fff; font-size: 14px; box-sizing: border-box; outline: none; transition: border-color 0.3s;">
+                <select id="login-username" autocomplete="username" style="width: 100%; padding: 12px 15px; margin-bottom: 15px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.1); background: #1a1f24; color: #fff; font-size: 14px; box-sizing: border-box; outline: none; transition: border-color 0.3s; cursor: pointer;">
+                    <option value="AGROGIS_NDB">Nível 1 - Operacional (AGROGIS_NDB)</option>
+                    <option value="AGROGIS_NDB_ADM">Nível 2 - Administrador (AGROGIS_NDB_ADM)</option>
+                </select>
                 
                 <div style="position: relative; width: 100%; margin-bottom: 20px;">
                     <input type="password" id="login-password" autocomplete="current-password" placeholder="Senha" style="width: 100%; padding: 12px 15px; padding-right: 40px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.2); color: #fff; font-size: 14px; box-sizing: border-box; outline: none; transition: border-color 0.3s;">
