@@ -47,12 +47,18 @@
         <div class="login-container" style="background: rgba(255,255,255,0.03); padding: 40px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05); text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.5); width: 320px;">
             <img src="logo.png.jpg" alt="AGROGIS Logo" style="width: 250px; margin-bottom: 30px; mix-blend-mode: screen;">
             
-            <input type="text" id="login-username" placeholder="Usuário" style="width: 100%; padding: 12px 15px; margin-bottom: 15px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.2); color: #fff; font-size: 14px; box-sizing: border-box; outline: none; transition: border-color 0.3s;">
-            <input type="password" id="login-password" placeholder="Senha" style="width: 100%; padding: 12px 15px; margin-bottom: 20px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.2); color: #fff; font-size: 14px; box-sizing: border-box; outline: none; transition: border-color 0.3s;">
-            
-            <div id="login-error" style="color: #ff4d4d; font-size: 12px; margin-bottom: 15px; display: none;">Credenciais inválidas!</div>
-            
-            <button id="btn-login" style="width: 100%; padding: 12px; border-radius: 6px; background: linear-gradient(90deg, #e85d04, #f48c06); color: #fff; font-weight: bold; border: none; cursor: pointer; text-transform: uppercase; letter-spacing: 1px; transition: transform 0.2s, box-shadow 0.2s;">Entrar</button>
+            <form id="login-form" style="width: 100%; position: relative;">
+                <input type="text" id="login-username" autocomplete="username" placeholder="Usuário" style="width: 100%; padding: 12px 15px; margin-bottom: 15px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.2); color: #fff; font-size: 14px; box-sizing: border-box; outline: none; transition: border-color 0.3s;">
+                
+                <div style="position: relative; width: 100%; margin-bottom: 20px;">
+                    <input type="password" id="login-password" autocomplete="current-password" placeholder="Senha" style="width: 100%; padding: 12px 15px; padding-right: 40px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.2); color: #fff; font-size: 14px; box-sizing: border-box; outline: none; transition: border-color 0.3s;">
+                    <button type="button" id="toggle-password" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; color: #fff; opacity: 0.6; cursor: pointer; font-size: 16px;">👁</button>
+                </div>
+                
+                <div id="login-error" style="color: #ff4d4d; font-size: 12px; margin-bottom: 15px; display: none;">Credenciais inválidas!</div>
+                
+                <button type="submit" id="btn-login" style="width: 100%; padding: 12px; border-radius: 6px; background: linear-gradient(90deg, #e85d04, #f48c06); color: #fff; font-weight: bold; border: none; cursor: pointer; text-transform: uppercase; letter-spacing: 1px; transition: transform 0.2s, box-shadow 0.2s;">Entrar</button>
+            </form>
             <button id="btn-install" style="width: 100%; padding: 12px; margin-top: 15px; border-radius: 6px; background: transparent; color: #e85d04; border: 1px solid #e85d04; cursor: pointer; text-transform: uppercase; font-weight: bold; display: none;">📥 Instalar no Celular</button>
         </div>
     </div>

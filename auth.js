@@ -6,12 +6,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const loginError = document.getElementById('login-error');
     const pdfImporter = document.getElementById('pdf-importer-container');
 
-    // Check local storage for persistent login
-    const savedLevel = localStorage.getItem('agrogis_access_level');
-    if (savedLevel) {
-        grantAccess(parseInt(savedLevel));
-    }
-
+    // Removing automatic bypass: Always ask for password!
+    // The browser's native password manager will auto-fill credentials instead.
     // Add some focus effects to inputs
     [inputUsername, inputPassword].forEach(input => {
         input.addEventListener('focus', () => {
@@ -21,13 +17,30 @@ document.addEventListener('DOMContentLoaded', () => {
             input.style.borderColor = 'rgba(255,255,255,0.1)';
         });
         input.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                performLogin();
-            }
+            // Enter key naturally submits the form now, so no custom handler needed here
         });
     });
 
-    btnLogin.addEventListener('click', performLogin);
+    const loginForm = document.getElementById('login-form');
+    if (loginForm) {
+        loginForm.addEventListener('submit', (e) => {
+            e.preventDefault(); // Prevent page reload
+            performLogin();
+        });
+    }
+
+    const togglePassword = document.getElementById('toggle-password');
+    if (togglePassword) {
+        togglePassword.addEventListener('click', () => {
+            if (inputPassword.type === 'password') {
+                inputPassword.type = 'text';
+                togglePassword.textContent = '🔒';
+            } else {
+                inputPassword.type = 'password';
+                togglePassword.textContent = '👁';
+            }
+        });
+    }
 
     // Logout logic
     const btnLogout = document.getElementById('btn-logout');
