@@ -433,8 +433,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 onEachFeature: (feature, layer) => {
                     const props = feature.properties || {};
                     const title = props.nome || props.NOME || props.Name || props.talhao || props.TALHAO || props.id || props.designacao || 'Elemento';
-                    layer.bindPopup(createPopupContent(title, props));
-                    
+                    // Popup is now bound dynamically on click so it doesn't interfere with routing clicks
                     if (isFazenda) {
                         layer.bindTooltip(title, {
                             permanent: true,
@@ -513,6 +512,12 @@ document.addEventListener('DOMContentLoaded', () => {
                                 L.DomEvent.stopPropagation(e);
                                 return;
                             }
+
+                            // If we are NOT tracing a route, open the attribute table popup
+                            L.popup({ autoPanPadding: [50, 50] })
+                                .setLatLng(e.latlng)
+                                .setContent(createPopupContent(title, props))
+                                .openOn(map);
 
                             if (isFazenda) {
                                 // Clear previous search/click highlight
