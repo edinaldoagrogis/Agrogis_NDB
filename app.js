@@ -33,15 +33,19 @@ document.addEventListener('DOMContentLoaded', () => {
             const icon = L.DomUtil.create('div', '', container);
             icon.innerHTML = '🧭';
             icon.style.fontSize = '20px';
-            icon.style.transition = 'transform 0.1s, opacity 0.2s';
+            icon.style.transition = 'opacity 0.2s';
             icon.style.opacity = '0.4'; // Default locked state (greyed out)
             
             let isUnlocked = false;
+            let rafId = null;
 
             if (typeof map.getBearing === 'function') {
                 map.on('rotate', function() {
-                    const bearing = map.getBearing();
-                    icon.style.transform = `rotate(${bearing}deg)`;
+                    if (rafId) cancelAnimationFrame(rafId);
+                    rafId = requestAnimationFrame(() => {
+                        const bearing = map.getBearing();
+                        icon.style.transform = `rotate(${bearing}deg) translateZ(0)`;
+                    });
                 });
             }
 
