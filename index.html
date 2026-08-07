@@ -73,22 +73,34 @@
 
     <div class="app-container">
         <!-- Sidebar Panel -->
-        <aside class="sidebar">
-            <div class="sidebar-header" style="position: relative; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 15px 0 10px 0; border-bottom: 1px solid rgba(255,255,255,0.03); text-align: center;">
-                <button id="btn-logout" style="position: absolute; top: 12px; left: 12px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: #fff; padding: 4px 8px; border-radius: 4px; font-size: 10px; cursor: pointer; transition: all 0.3s;" title="Sair do sistema" onmouseover="this.style.background='rgba(232, 93, 4, 0.8)'; this.style.borderColor='rgba(232, 93, 4, 1)';" onmouseout="this.style.background='rgba(255,255,255,0.05)'; this.style.borderColor='rgba(255,255,255,0.1)';">Sair</button>
-                <img src="logo.png.jpg" alt="AGROGIS Logo" style="width: 320px; max-width: 95%; height: auto; mix-blend-mode: screen; margin-top: -10px; margin-bottom: -2px; clip-path: inset(3px);">
-                <div style="font-size: 13px; font-weight: 700; color: #8fa89b; letter-spacing: 2px; text-transform: uppercase; text-shadow: 0 1px 2px rgba(0,0,0,0.5); margin-top: 18px; margin-bottom: 0px; line-height: 1.2;">Painel de Controle Operacional Agrícola</div>
+        <!-- Top Navigation Bar -->
+        <header class="topbar">
+            <div class="topbar-left">
+                <img src="logo.png.jpg" alt="AGROGIS Logo" class="topbar-logo">
+                <div class="topbar-title">Painel de Controle Operacional Agrícola</div>
             </div>
             
-            <div class="sidebar-content">
-                <!-- Sidebar Search Box moved to map overlay -->
+            <nav class="topbar-center">
+                <button class="topbar-tab active" id="tab-mapa">🗺️ Mapa Central</button>
+                <button class="topbar-tab" id="tab-programacao">📋 Programação Operacional</button>
+            </nav>
+            
+            <div class="topbar-right">
+                <button id="btn-logout" class="btn-logout-top" title="Sair do sistema">Sair</button>
+            </div>
+        </header>
 
-
-
+        <!-- Floating Panel for Tools (hidden by default, opens when tab-programacao is clicked) -->
+        <div class="floating-panel" id="tools-panel" style="display: none;">
+            <div class="panel-header">
+                <h2>Programação de Serviço</h2>
+                <button id="close-panel" class="close-btn">✖</button>
+            </div>
+            <div class="panel-content">
                 <!-- PDF Importer -->
-                <div class="pdf-importer-container" id="pdf-importer-container" style="padding: 5px 20px 0 20px; display: none;">
+                <div class="pdf-importer-container" id="pdf-importer-container" style="padding: 15px 0; display: none;">
                     <div style="display: flex; gap: 8px; align-items: center;">
-                        <button id="btn-import-pdf" class="btn-import-pdf" style="flex-grow: 1; display: flex; justify-content: center; align-items: center; gap: 6px; border-radius: 50px; background: linear-gradient(90deg, #e85d04, #f48c06); color: #fff; font-weight: 700; border: none; padding: 8px 16px; box-shadow: 0 2px 8px rgba(232, 93, 4, 0.2); text-transform: uppercase; letter-spacing: 0.5px; font-size: 10px; transition: all 0.3s ease; cursor: pointer; white-space: nowrap;">
+                        <button id="btn-import-pdf" class="btn-import-pdf" style="flex-grow: 1; display: flex; justify-content: center; align-items: center; gap: 6px; border-radius: 50px; background: linear-gradient(90deg, #e85d04, #f48c06); color: #fff; font-weight: 700; border: none; padding: 10px 16px; box-shadow: 0 2px 8px rgba(232, 93, 4, 0.2); text-transform: uppercase; letter-spacing: 0.5px; font-size: 11px; transition: all 0.3s ease; cursor: pointer;">
                             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                 <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
                                 <polyline points="14 2 14 8 20 8"></polyline>
@@ -96,45 +108,41 @@
                             </svg>
                             Importar Programação
                         </button>
-                        <button id="btn-view-pdf" class="btn-view-pdf" style="display: none; width: 30px; height: 30px; border-radius: 50%; padding: 0; display: flex; justify-content: center; align-items: center; background: rgba(255,255,255,0.02); color: #fff; border: 1px solid rgba(255,255,255,0.02); cursor: pointer; transition: all 0.3s ease; flex-shrink: 0;" title="Visualizar PDF Atual">👁️</button>
+                        <button id="btn-view-pdf" class="btn-view-pdf" style="display: none; width: 34px; height: 34px; border-radius: 50%; padding: 0; display: flex; justify-content: center; align-items: center; background: rgba(255,255,255,0.05); color: #fff; border: 1px solid rgba(255,255,255,0.1); cursor: pointer; transition: all 0.3s ease; flex-shrink: 0;" title="Visualizar PDF Atual">👁️</button>
                     </div>
                     <input type="file" id="pdf-file-input" accept=".pdf" style="display: none;">
                     <div id="pdf-loading-indicator" style="display: none; color: #e85d04; font-size: 11px; margin-top: 8px; text-align: center;">⚙️ Processando PDF...</div>
                 </div>
 
-                <!-- Programação de Serviço -->
-                <div class="service-schedule-section" style="padding: 15px 0 5px 0;">
-                    <div id="prog-toggle" style="display: flex; justify-content: space-between; align-items: center; cursor: pointer; padding: 0 20px 10px 20px;">
-                        <h2 style="margin: 0; padding: 0;">Programação de Serviço</h2>
-                        <span id="prog-icon" style="font-size: 10px; color: var(--text-muted); transition: transform 0.2s;">▼</span>
-                    </div>
-                    <div id="prog-content" style="display: block; padding: 0 20px;">
-                        <div id="programacao-list" class="accordion-container">
-                            <!-- Accordions will be generated here by app.js -->
-                        </div>
+                <!-- Programação de Serviço List -->
+                <div class="service-schedule-section">
+                    <div id="programacao-list" class="accordion-container">
+                        <!-- Accordions will be generated here by app.js -->
                     </div>
                 </div>
-                
-                <script>
-                    document.getElementById('prog-toggle').addEventListener('click', function() {
-                        const content = document.getElementById('prog-content');
-                        const icon = document.getElementById('prog-icon');
-                        if (content.style.display === 'none') {
-                            content.style.display = 'block';
-                            icon.innerHTML = '▼';
-                        } else {
-                            content.style.display = 'none';
-                            icon.innerHTML = '▲';
-                        }
-                    });
-                </script>
-
             </div>
+        </div>
 
-            <div class="sidebar-footer">
-                <p>&copy; 2026 NDB Holding Agrícola</p>
-            </div>
-        </aside>
+        <script>
+            // Topbar Tab Logic
+            document.getElementById('tab-programacao').addEventListener('click', function() {
+                document.getElementById('tools-panel').style.display = 'flex';
+                this.classList.add('active');
+                document.getElementById('tab-mapa').classList.remove('active');
+            });
+
+            document.getElementById('tab-mapa').addEventListener('click', function() {
+                document.getElementById('tools-panel').style.display = 'none';
+                this.classList.add('active');
+                document.getElementById('tab-programacao').classList.remove('active');
+            });
+
+            document.getElementById('close-panel').addEventListener('click', function() {
+                document.getElementById('tools-panel').style.display = 'none';
+                document.getElementById('tab-mapa').classList.add('active');
+                document.getElementById('tab-programacao').classList.remove('active');
+            });
+        </script>
 
         <!-- Map Container -->
         <main class="map-wrapper">
