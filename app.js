@@ -2107,10 +2107,17 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (matchedId) return;
                 const props = layer.feature && layer.feature.properties;
                 if (!props) return;
-                const nameStr = String(props.NOME_FAZ || props['DL DESCFUNDOA'] || '').trim().toLowerCase();
                 
-                if (nameStr && (nameStr.includes(searchName) || searchName.includes(nameStr))) {
-                    matchedId = props.FAZENDA || props.DL_FUNDOAGRIC || props['DL FUNDOAGRIC'];
+                const nameStr = String(props.NOME_FAZ || props['DL DESCFUNDOA'] || '').trim().toLowerCase();
+                const rawId = props.FAZENDA || props.DL_FUNDOAGRIC || props['DL FUNDOAGRIC'];
+                const cleanIdStr = String(rawId || '').split(',')[0].split('.')[0].trim().toLowerCase();
+                const combinedStr = cleanIdStr ? `${cleanIdStr} - ${nameStr}` : nameStr;
+                
+                // Tenta combinar nome, string combinada ou ser exatamente igual ao código
+                if ((nameStr && (nameStr.includes(searchName) || searchName.includes(nameStr))) ||
+                    (combinedStr && (combinedStr.includes(searchName) || searchName.includes(combinedStr))) ||
+                    (cleanIdStr && cleanIdStr === searchName)) {
+                    matchedId = rawId;
                 }
             });
         });
@@ -2134,12 +2141,19 @@ document.addEventListener('DOMContentLoaded', () => {
             mapLayer.eachLayer(layer => {
                 const props = layer.feature && layer.feature.properties;
                 if (!props) return;
-                const name = props.NOME_FAZ || props['DL DESCFUNDOA'];
-                if (name && !seen.has(name)) {
-                    seen.add(name);
-                    const opt = document.createElement('option');
-                    opt.value = name;
-                    searchDatalist.appendChild(opt);
+                const rawName = props.NOME_FAZ || props['DL DESCFUNDOA'];
+                const rawId = props.FAZENDA || props.DL_FUNDOAGRIC || props['DL FUNDOAGRIC'];
+                
+                if (rawName) {
+                    const cleanIdStr = String(rawId || '').split(',')[0].split('.')[0].trim();
+                    const combinedStr = cleanIdStr ? `${cleanIdStr} - ${rawName}` : rawName;
+                    
+                    if (!seen.has(combinedStr)) {
+                        seen.add(combinedStr);
+                        const opt = document.createElement('option');
+                        opt.value = combinedStr;
+                        searchDatalist.appendChild(opt);
+                    }
                 }
             });
         });
