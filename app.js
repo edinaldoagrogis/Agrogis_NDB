@@ -2072,16 +2072,21 @@ document.addEventListener('DOMContentLoaded', () => {
         const baseTargetId = cleanId(fazendaId);
         if (!baseTargetId) return results;
 
+        const seenPolys = new Set();
         Object.keys(window.loadedLayers).forEach(layerName => {
-            if (!layerName.toLowerCase().includes('talhao') && !layerName.toLowerCase().includes('talhão')) return;
             const mapLayer = window.loadedLayers[layerName];
             if (!mapLayer || !mapLayer.eachLayer) return;
             mapLayer.eachLayer(layer => {
                 const props = layer.feature && layer.feature.properties;
                 if (!props) return;
                 const fid = props.FAZENDA || props.DL_FUNDOAGRIC || props['DL FUNDOAGRIC'];
-                if (cleanId(fid) === baseTargetId) {
-                    results.push(layer.feature);
+                if (fid && cleanId(fid) === baseTargetId) {
+                    // Evitar duplicatas se houver mais de uma camada com os mesmos talhões (ex: Variedades)
+                    const uniqueKey = props.TALHAO || props.COD_TALHAO || JSON.stringify(layer.feature.geometry.coordinates?.[0]?.[0] || Math.random());
+                    if (!seenPolys.has(uniqueKey)) {
+                        seenPolys.add(uniqueKey);
+                        results.push(layer.feature);
+                    }
                 }
             });
         });
@@ -2091,19 +2096,20 @@ document.addEventListener('DOMContentLoaded', () => {
     function getFazendaFeaturesByName(nomeFaz) {
         let matchedId = null;
         if (!window.loadedLayers) return [];
+        const searchName = String(nomeFaz || '').trim().toLowerCase();
         
         // Primeiro, encontrar o ID da fazenda que bate com o nome buscado
         Object.keys(window.loadedLayers).forEach(layerName => {
             if (matchedId) return; // already found
-            if (!layerName.toLowerCase().includes('talhao') && !layerName.toLowerCase().includes('talhão')) return;
             const mapLayer = window.loadedLayers[layerName];
             if (!mapLayer || !mapLayer.eachLayer) return;
             mapLayer.eachLayer(layer => {
                 if (matchedId) return;
                 const props = layer.feature && layer.feature.properties;
                 if (!props) return;
-                const name = String(props.NOME_FAZ || props['DL DESCFUNDOA'] || '').toLowerCase();
-                if (name.includes(nomeFaz.toLowerCase()) || nomeFaz.toLowerCase().includes(name.split(' ').slice(0,3).join(' ').toLowerCase())) {
+                const nameStr = String(props.NOME_FAZ || props['DL DESCFUNDOA'] || '').trim().toLowerCase();
+                
+                if (nameStr && (nameStr.includes(searchName) || searchName.includes(nameStr))) {
                     matchedId = props.FAZENDA || props.DL_FUNDOAGRIC || props['DL FUNDOAGRIC'];
                 }
             });
