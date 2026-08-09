@@ -308,16 +308,7 @@ document.addEventListener('DOMContentLoaded', () => {
         return farmColors[farmName];
     }
 
-    const varietyColors = {};
-    let varietyColorIndex = 0;
-    function getVarietyColor(varietyName) {
-        if (!varietyName) return '#8338ec';
-        if (!varietyColors[varietyName]) {
-            varietyColors[varietyName] = extendedPalette[varietyColorIndex % extendedPalette.length];
-            varietyColorIndex++;
-        }
-        return varietyColors[varietyName];
-    }
+
 
     if (typeof GEOPORTAL_LAYERS !== 'undefined') {
         
@@ -352,7 +343,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (isFazenda) baseColor = '#ff9f1c'; 
             if (isTalhao) baseColor = '#2ec4b6'; 
-            if (isVariedade) baseColor = '#8338ec';
             colorIndex++;
 
             const styleFunc = function(feature) {
@@ -363,18 +353,12 @@ document.addEventListener('DOMContentLoaded', () => {
                         featureColor = getFarmColor(farmName);
                     }
                 }
-                if (isVariedade && feature.properties) {
-                    const varName = feature.properties['DL VARIEDADE'] || feature.properties.VARIEDADE || feature.properties.variedade;
-                    if (varName) {
-                        featureColor = getVarietyColor(varName);
-                    }
-                }
                 return {
-                    color: (isTalhao || isVariedade) ? '#b0b0b0' : featureColor,
-                    weight: (isTalhao || isVariedade) ? 0.8 : (isFazenda ? 0 : 1.5),
+                    color: isTalhao ? '#b0b0b0' : featureColor,
+                    weight: isTalhao ? 0.8 : (isFazenda ? 0 : 1.5),
                     opacity: isFazenda ? 0 : 0.9,
                     fillColor: featureColor,
-                    fillOpacity: (isTalhao || isVariedade) ? 0.85 : (isFazenda ? 0 : 0.2)
+                    fillOpacity: isTalhao ? 0.85 : (isFazenda ? 0 : 0.2)
                 };
             };
             
