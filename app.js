@@ -143,36 +143,6 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
 
-        // Equipes Zoom logic
-        if (loadedLayers['EQUIPES']) {
-            const zoom = map.getZoom();
-            
-            // Check if Variedades is active (it hides Equipes)
-            let isVariedadesActive = false;
-            const allCheckboxes = document.querySelectorAll('#dynamic-layer-list input[type="checkbox"][data-layer]');
-            allCheckboxes.forEach(cb => {
-                const layerName = cb.getAttribute('data-layer') || '';
-                if (layerName.toUpperCase().includes('VARIEDADE') && cb.checked) {
-                    isVariedadesActive = true;
-                }
-            });
-
-            // Check if Equipes checkbox is checked
-            let isEquipesChecked = true;
-            const equipesCb = document.querySelector('#dynamic-layer-list input[type="checkbox"][data-layer="EQUIPES"]');
-            if (equipesCb) {
-                isEquipesChecked = equipesCb.checked;
-            }
-
-            if (zoom >= EQUIPES_ZOOM_THRESHOLD && isEquipesChecked && !isVariedadesActive) {
-                if (!map.hasLayer(loadedLayers['EQUIPES'])) {
-                    map.addLayer(loadedLayers['EQUIPES']);
-                }
-            } else {
-                if (map.hasLayer(loadedLayers['EQUIPES'])) {
-                    map.removeLayer(loadedLayers['EQUIPES']);
-                }
-            }
         }
     }
     
@@ -288,57 +258,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (typeof GEOPORTAL_LAYERS !== 'undefined') {
         
-        // --- PROCESS EQUIPES VIA LOCALSTORAGE ---
-        let savedEquipes = {};
-        let savedEquipesList = null;
-
-        try {
-            const saved = localStorage.getItem('geoportal_equipes_placement');
-            if (saved) savedEquipes = JSON.parse(saved);
-            
-            const savedList = localStorage.getItem('geoportal_equipes_list');
-            if (savedList) savedEquipesList = JSON.parse(savedList);
-        } catch (e) { console.error(e); }
-
-        window.savedEquipes = savedEquipes; // Make globally accessible for refresh
-        window.activeTeamPlacement = null;
-        
-        let workingEquipesData = savedEquipesList || (typeof EQUIPES_DATA !== 'undefined' ? EQUIPES_DATA : []);
-        window.workingEquipesData = workingEquipesData;
-
-        if (workingEquipesData.length > 0) {
-            const equipesFeatures = [];
-            
-            workingEquipesData.forEach(eq => {
-                if(!eq.EQUIPE) return;
-                
-                let act = (eq.ATIVIDADE || '').toUpperCase();
-                let isOutros = !act.includes('CORTE MECANIZADO') && !act.includes('DRONE') && !act.includes('LIMPEZA') && !act.includes('CATAÇÃO') && !act.includes('CATACAO') && !act.includes('HERBICIDA');
-                
-                // As equipes da aba "Outros" não devem aparecer no mapa
-                if (isOutros) return;
-
-                const savedPos = savedEquipes[eq.EQUIPE];
-                if (savedPos) {
-                    equipesFeatures.push({
-                        type: "Feature",
-                        properties: {
-                            nome: eq.EQUIPE,
-                            atividade: eq.ATIVIDADE || 'GERAL'
-                        },
-                        geometry: { type: "Point", coordinates: savedPos }
-                    });
-                }
-            });
-            
-            // Sempre criamos a camada EQUIPES, mesmo vazia
-            GEOPORTAL_LAYERS['EQUIPES'] = {
-                type: "FeatureCollection",
-                name: "EQUIPES",
-                features: equipesFeatures
-            };
-        }
-        // Fim PROCESS EQUIPES
+        // --- PROCESS EQUIPES VIA LOCALSTORAGE REMOVIDO ---
         
         for (const layerName in GEOPORTAL_LAYERS) {
             // Ignorar completamente camadas de Grade de Coordenadas que vieram exportadas no GeoJSON
@@ -361,12 +281,10 @@ document.addEventListener('DOMContentLoaded', () => {
             // Identify specific layers
             const isFazenda = layerName.toUpperCase().includes('FAZENDA');
             const isTalhao = layerName.toUpperCase().includes('TALHO');
-            const isEquipe = layerName.toUpperCase().includes('EQUIPE');
             const isVariedade = layerName.toUpperCase().includes('VARIEDADE');
 
             if (isFazenda) baseColor = '#ff9f1c'; 
             if (isTalhao) baseColor = '#2ec4b6'; 
-            if (isEquipe) baseColor = '#ff006e';
             if (isVariedade) baseColor = '#8338ec';
             colorIndex++;
 
@@ -405,52 +323,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 style: styleFunc,
                 pointToLayer: function (feature, latlng) {
-                    if (isEquipe) {
-                        const atividade = (feature.properties.atividade || '').toUpperCase();
-                        
-                        // Use Custom 3D Harvester Icon for Corte Mecanizado
-                        if (atividade.includes('CORTE')) {
-                            const iconUrl = 'colhedora_jd.jpg';
-                            return L.marker(latlng, {
-                                icon: L.divIcon({
-                                    className: 'equipe-marker',
-                                    html: `<div class="equipe-icon-container" style="background: transparent; border: none; box-shadow: none;">
-                                               <img src="${iconUrl}" style="width: 32px; height: 32px; border-radius: 50%; border: 2px solid #e85d04; box-shadow: 0 4px 8px rgba(232,93,4,0.4); object-fit: contain; background: #fff;">
-                                               <div class="equipe-label" style="bottom: -16px; font-size: 10px; padding: 2px 4px; background: rgba(0,0,0,0.8); border: 1px solid #e85d04;">${feature.properties.nome}</div>
-                                           </div>`,
-                                    iconSize: [32, 32],
-                                    iconAnchor: [16, 16]
-                                })
-                            });
-                        }
-
-                        let pinColor = '#0077b6'; // Default to GIS Blue (Tratos) for others
-                        
-                        if (atividade.includes('DRONE') || atividade.includes('LIMPEZA') || atividade.includes('CATAÇÃO') || atividade.includes('CATACAO') || atividade.includes('HERBICIDA')) {
-                            pinColor = '#0077b6'; // GIS Blue (Tratos)
-                        }
-
-                        const avenzaPinSVG = `
-                            <div style="position: relative; width: 24px; height: 32px; left: -12px; top: -32px;">
-                                <svg viewBox="0 0 32 42" width="24" height="32" xmlns="http://www.w3.org/2000/svg" style="filter: drop-shadow(0px 2px 2px rgba(0,0,0,0.5));">
-                                    <path d="M16 0C7.163 0 0 7.163 0 16c0 10.5 16 26 16 26s16-15.5 16-26C32 7.163 24.837 0 16 0z" fill="${pinColor}" stroke="#ffffff" stroke-width="1.5"/>
-                                    <circle cx="16" cy="16" r="6" fill="#ffffff"/>
-                                </svg>
-                                <div style="position: absolute; top: 34px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.75); color: #fff; padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: bold; white-space: nowrap; border: 1px solid rgba(255,255,255,0.2); box-shadow: 0 2px 4px rgba(0,0,0,0.5); font-family: 'Inter', Arial, sans-serif;">
-                                    ${feature.properties.nome.split(' ')[0]}
-                                </div>
-                            </div>
-                        `;
-
-                        return L.marker(latlng, {
-                            icon: L.divIcon({
-                                className: 'avenza-marker',
-                                html: avenzaPinSVG,
-                                iconSize: [0, 0],
-                                iconAnchor: [0, 0]
-                            })
-                        });
-                    }
                     return L.circleMarker(latlng, {
                         radius: isFazenda ? 12 : 6,
                         fillColor: baseColor,
@@ -1015,110 +887,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Handle Team Selection (Fly to team only)
-    document.addEventListener('click', (e) => {
-        const teamItem = e.target.closest('.team-list-item');
-        if (teamItem) {
-            document.querySelectorAll('.team-list-item').forEach(el => el.classList.remove('active'));
-            teamItem.classList.add('active');
-            
-            const teamName = teamItem.getAttribute('data-team-name');
-            
-            // Pular para o ícone se já estiver posicionado no mapa
-            if (window.savedEquipes && window.savedEquipes[teamName]) {
-                const coords = window.savedEquipes[teamName];
-                map.flyTo([coords[1], coords[0]], 16, { duration: 1.5 });
-            }
-        }
-    });
-
-    // --- PROGRAMAÇÃO DE SERVIÇO TABS ---
-    const progContainer = document.getElementById('programacao-list');
-    if (progContainer && window.workingEquipesData && window.workingEquipesData.length > 0) {
-        let tratos = [];
-        let corte = [];
-        let outros = [];
-
-        window.workingEquipesData.forEach(eq => {
-            let act = (eq.ATIVIDADE || '').toUpperCase();
-            if (act.includes('CORTE MECANIZADO')) {
-                corte.push(eq);
-            } else if (act.includes('DRONE') || act.includes('LIMPEZA') || act.includes('CATAÇÃO') || act.includes('CATACAO') || act.includes('HERBICIDA')) {
-                tratos.push(eq);
-            } else {
-                outros.push(eq);
-            }
-        });
-
-        const buildTab = (title, items) => {
-            if (items.length === 0) return '';
-            
-            let iconSvg = '';
-            let accColor = '#fff';
-            if (title.includes('Corte')) {
-                accColor = '#e85d04';
-                iconSvg = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="${accColor}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="10" width="8" height="8" rx="1"></rect><path d="M11 12h4l3 3v3h-7"></path><path d="M18 18h1v-6l-3-3h-4V7a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1v2"></path><circle cx="6" cy="18" r="2"></circle><circle cx="15" cy="18" r="2"></circle></svg>`;
-            } else if (title.includes('Tratos')) {
-                accColor = '#0077b6';
-                iconSvg = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="${accColor}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"></path><path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"></path></svg>`;
-            } else {
-                accColor = '#8fa89b';
-                iconSvg = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="${accColor}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>`;
-            }
-
-            const avenzaIcon = `<div style="width: 36px; height: 36px; border-radius: 8px; background: rgba(255, 255, 255, 0.03); display: flex; justify-content: center; align-items: center; margin-right: 12px; flex-shrink: 0;">${iconSvg}</div>`;
-            const subtitleText = items.length === 1 ? '1 equipe' : items.length + ' equipes';
-
-            let html = `
-                <div class="accordion-item" style="border-bottom: 1px solid rgba(255,255,255,0.05);">
-                    <div class="accordion-header layer-main-row" style="padding: 8px 16px; border-bottom: none; display: flex; align-items: center; cursor: pointer; transition: background 0.2s;">
-                        ${avenzaIcon}
-                        <div class="layer-text-container" style="flex-grow: 1; display: flex; flex-direction: column; justify-content: center; text-align: left;">
-                            <div class="layer-name" style="font-size: 14px; font-weight: 500; color: var(--text-main); line-height: 1; text-transform: capitalize;">${title}</div>
-                            <div class="layer-subtitle" style="font-size: 9px; color: rgba(255, 255, 255, 0.25); margin-top: 0px; line-height: 1;">${subtitleText}</div>
-                        </div>
-                        <div style="display: flex; align-items: center; gap: 12px;">
-                            <span class="acc-icon" style="font-size: 10px; color: rgba(255,255,255,0.3); font-weight: bold; width: 16px; text-align: center;">▼</span>
-                        </div>
-                    </div>
-                    <div class="accordion-content" style="display: none; padding: 10px 16px 15px 64px;">
-                        <div style="display: flex; flex-direction: column; gap: 4px;">
-            `;
-            items.forEach(eq => {
-                let showPin = window.savedEquipes[eq.EQUIPE];
-                if (title === 'Outros') showPin = false; // Never show pin for Outros
-                
-                html += `
-                    <div class="team-list-item" data-team-name="${eq.EQUIPE}" data-team-atividade="${eq.ATIVIDADE || ''}">
-                        <span>${eq.EQUIPE}</span>
-                        ${showPin ? '<span class="team-status-placed" style="margin-left:auto; font-size:12px;">📍</span>' : ''}
-                    </div>
-                `;
-            });
-            html += `</div></div></div>`;
-            return html;
-        };
-
-        progContainer.innerHTML = buildTab('Tratos Culturais', tratos) + 
-                                  buildTab('Corte Mecanizado', corte) + 
-                                  buildTab('Outros', outros);
-
-        // Accordion functionality
-        progContainer.querySelectorAll('.accordion-header').forEach(header => {
-            header.addEventListener('click', () => {
-                const content = header.nextElementSibling;
-                const icon = header.querySelector('.acc-icon');
-                if (content.style.display === 'none') {
-                    content.style.display = 'block';
-                    icon.innerHTML = '▲';
-                    header.style.backgroundColor = 'rgba(255,255,255,0.03)';
-                } else {
-                    content.style.display = 'none';
-                    icon.innerHTML = '▼';
-                    header.style.backgroundColor = 'transparent';
-                }
-            });
-        });
     }
 
     // --- MEASUREMENT TOOL LOGIC ---
