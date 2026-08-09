@@ -11,6 +11,7 @@ document.addEventListener('DOMContentLoaded', () => {
         rotate: isTouchDevice,
         touchRotate: false // Disabled by default, toggled by compass
     }).setView([-17.8, -40.0], 7);
+    window.map = map; // Expose globally for modules
     
     // Custom Compass Control (Rotation Toggle)
     const CompassControl = L.Control.extend({
