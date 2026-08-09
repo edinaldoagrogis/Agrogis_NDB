@@ -2061,6 +2061,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
                 
                 checkApiHealth();
+                // O servidor demora alguns segundos para ligar, re-checar em breve:
+                setTimeout(checkApiHealth, 3000);
+                setTimeout(checkApiHealth, 6000);
             } else {
                 toolWeedBtn.style.background = 'rgba(255,0,0,0.08)';
                 toolWeedBtn.style.borderColor = 'rgba(255,0,0,0.3)';
