@@ -2169,7 +2169,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (text) text.textContent = 'Identificar Infestação na Fazenda';
         ['step-search','step-download','step-ndvi','step-detect'].forEach(id => {
             const el = document.getElementById(id);
-            if (el) { el.style.color = 'rgba(255,255,255,0.3)'; el.style.fontWeight = 'normal'; const ico = el.querySelector('.step-icon'); if(ico) ico.textContent = ['step-search'=>'⏳','step-download'=>'⬇️','step-ndvi'=>'📊','step-detect'=>'🔍'][id] || '⏳'; }
+            if (el) { el.style.color = 'rgba(255,255,255,0.3)'; el.style.fontWeight = 'normal'; const ico = el.querySelector('.step-icon'); if(ico) ico.textContent = {'step-search':'⏳','step-download':'⬇️','step-ndvi':'📊','step-detect':'🔍'}[id] || '⏳'; }
         });
     }
 
