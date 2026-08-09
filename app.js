@@ -389,7 +389,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // Create Map Layer
             const mapLayer = L.geoJSON(data, {
-                smoothFactor: isMobile ? 3.5 : 1.5, // Simplifies polygon geometry for massive mobile FPS gain
+                smoothFactor: 0, // Disabled simplification to fix geometry distortion
+
                 style: styleFunc,
                 pointToLayer: function (feature, latlng) {
                     if (isEquipe) {
