@@ -1252,14 +1252,29 @@ loadedLayers[type.toUpperCase()] = myLayers[type];
     const searchInput = document.getElementById('layer-search');
     const searchIcon = document.querySelector('.search-container.floating .search-icon');
     if (searchIcon && searchInput) {
+        let isExpanded = false;
+        
         searchIcon.addEventListener('click', (e) => {
             e.preventDefault();
             e.stopPropagation();
-            if (document.activeElement === searchInput) {
+            
+            if (isExpanded) {
                 searchInput.blur();
+                isExpanded = false;
             } else {
                 searchInput.focus();
+                isExpanded = true;
             }
+        });
+
+        searchInput.addEventListener('focus', () => {
+            isExpanded = true;
+        });
+
+        searchInput.addEventListener('blur', () => {
+            setTimeout(() => {
+                isExpanded = false;
+            }, 200);
         });
     }
     searchInput.addEventListener('input', (e) => {
