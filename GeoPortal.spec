@@ -3,7 +3,7 @@ from PyInstaller.utils.hooks import collect_all
 
 datas = [('index.html', '.'), ('style.css', '.'), ('*.js', '.'), ('*.jpg', '.'), ('*.png', '.'), ('*.geojson', '.')]
 binaries = []
-hiddenimports = ['uvicorn', 'fastapi', 'pydantic', 'shapely', 'numpy', 'requests']
+hiddenimports = ['uvicorn', 'fastapi', 'pydantic', 'shapely', 'requests', 'rasterio.serde', 'rasterio.sample', 'rasterio.vrt', 'rasterio._env']
 tmp_ret = collect_all('rasterio')
 datas += tmp_ret[0]; binaries += tmp_ret[1]; hiddenimports += tmp_ret[2]
 tmp_ret = collect_all('pyproj')
