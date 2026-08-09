@@ -13,8 +13,7 @@ def get_base_path():
 base_path = get_base_path()
 
 # Import the FastAPI backend
-sys.path.insert(0, os.path.join(base_path, "backend"))
-from main import app as fastapi_app
+from backend.main import app as fastapi_app
 
 class Api:
     def __init__(self):
