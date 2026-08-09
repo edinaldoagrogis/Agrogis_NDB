@@ -1045,6 +1045,11 @@ body.disable-map-hover .leaflet-interactive {
     background-color: rgba(255, 255, 255, 0.1) !important;
 }
 
+#btn-update-app-floating {
+    display: flex !important;
+    z-index: 9999 !important;
+}
+
 /* Elevate bottom-right controls so they don't hide behind mobile bottom bar */
 .leaflet-bottom.leaflet-right {
     margin-bottom: 75px !important;
