@@ -304,8 +304,9 @@
                                     <div style="font-size: 10px; color: rgba(255,255,255,0.5); margin-top: 2px;">Focos Detectados</div>
                                 </div>
                             </div>
-                            <div style="margin-top: 8px; font-size: 10px; color: rgba(255,255,255,0.3); text-align: center;">
-                                🛰️ Imagem: <span id="weed-stat-date">—</span> · Nuvens: <span id="weed-stat-cloud">—</span>%
+                            <div style="margin-top: 12px; font-size: 11px; color: rgba(255,255,255,0.6); text-align: center; background: rgba(255,255,255,0.02); border-radius: 6px; padding: 8px; border: 1px solid rgba(255,255,255,0.05);">
+                                <div>🛰️ Imagem Sentinel-2: <strong id="weed-stat-date" style="color: #4CAF50;">—</strong></div>
+                                <div style="margin-top: 4px;">Nuvens no local: <strong id="weed-stat-cloud" style="color: #fff;">—</strong>%</div>
                             </div>
                         </div>
                         <div id="weed-export-btns" style="display: none; flex-direction: row; gap: 8px;">
@@ -364,7 +365,11 @@
                                     <div style="font-size: 10px; color: rgba(255,255,255,0.5); margin-top: 2px;">Focos Detectados</div>
                                 </div>
                             </div>
-                            <div style="display:flex; gap:8px; margin-top: 10px;">
+                            <div style="margin-top: 12px; font-size: 11px; color: rgba(255,255,255,0.6); text-align: center; background: rgba(255,255,255,0.02); border-radius: 6px; padding: 8px; border: 1px solid rgba(255,255,255,0.05);">
+                                <div>🛰️ Imagem Sentinel-2: <strong id="weed-search-stat-date" style="color: #4CAF50;">—</strong></div>
+                                <div style="margin-top: 4px;">Nuvens no local: <strong id="weed-search-stat-cloud" style="color: #fff;">—</strong>%</div>
+                            </div>
+                            <div style="display:flex; gap:8px; margin-top: 12px;">
                                 <button id="btn-export-search-geojson" style="flex:1; padding: 8px; border-radius: 8px; background: rgba(46,196,182,0.1); border: 1px solid #2ec4b6; color: #2ec4b6; font-size: 11px; font-weight: 600; cursor: pointer;">📥 GeoJSON</button>
                                 <button id="btn-export-search-kml" style="flex:1; padding: 8px; border-radius: 8px; background: rgba(255,159,28,0.1); border: 1px solid #ff9f1c; color: #ff9f1c; font-size: 11px; font-weight: 600; cursor: pointer;">📥 KML</button>
                             </div>
@@ -546,7 +551,7 @@
     <script src="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.js"></script>
     
     <!-- Custom JS App -->
-    <script src="app.js?v=3.7"></script>
+    <script src="app.js?v=3.8"></script>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const menuBtn = document.getElementById('mobile-menu-btn');

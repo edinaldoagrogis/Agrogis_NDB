@@ -2353,6 +2353,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (searchResultStats) searchResultStats.style.display = 'block';
                 if (searchStatHa) searchStatHa.textContent = result.total_infested_ha;
                 if (searchStatCount) searchStatCount.textContent = result.reboleiras.length;
+                
+                const searchStatDate = document.getElementById('weed-search-stat-date');
+                const searchStatCloud = document.getElementById('weed-search-stat-cloud');
+                if (searchStatDate) searchStatDate.textContent = result.satellite_date || '—';
+                if (searchStatCloud) searchStatCloud.textContent = (result.cloud_cover !== undefined && result.cloud_cover !== null) ? Number(result.cloud_cover).toFixed(0) : '—';
                 // Voar para a fazenda
                 if (weedLayer && weedLayer.getBounds().isValid()) {
                     window.map.flyToBounds(weedLayer.getBounds(), { padding: [80, 80], duration: 2 });
