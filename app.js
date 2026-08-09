@@ -675,9 +675,174 @@ document.addEventListener('DOMContentLoaded', () => {
         */
         
         updateLabelVisibility(); // Call initial check after layers are loaded
+        
+        // Inicializar Minhas Camadas
+        initCustomLayers();
     } else {
         console.warn("GEOPORTAL_LAYERS data not found. Please run INICIAR_GEOPORTAL.bat");
         dynamicLayerList.innerHTML = '<li style="color:#e71d36; font-size:12px;">Por favor, execute o arquivo INICIAR_GEOPORTAL.bat</li>';
+    }
+
+    // --- CUSTOM LAYERS LOGIC ---
+    let myLayers = {
+        pontos: null,
+        areas: null,
+        rotas: null
+    };
+
+    function saveCustomFeature(type, geoJsonFeature) {
+        const key = `agrogis_custom_${type}`;
+        let existing = localStorage.getItem(key);
+        let featureCollection = { type: 'FeatureCollection', features: [] };
+        if (existing) {
+            try { featureCollection = JSON.parse(existing); } catch(e){}
+        }
+        featureCollection.features.push(geoJsonFeature);
+        localStorage.setItem(key, JSON.stringify(featureCollection));
+        
+        // Reload layer
+        loadCustomLayer(type, featureCollection);
+    }
+
+    function loadCustomLayer(type, featureCollection) {
+        if (!featureCollection) {
+            const key = `agrogis_custom_${type}`;
+            const existing = localStorage.getItem(key);
+            if (existing) {
+                try { featureCollection = JSON.parse(existing); } catch(e){}
+            } else {
+                featureCollection = { type: 'FeatureCollection', features: [] };
+            }
+        }
+        
+        if (myLayers[type]) {
+            myLayers[type].clearLayers();
+            myLayers[type].addData(featureCollection);
+        } else {
+            let options = {
+                onEachFeature: (feature, layer) => {
+                    if (feature.properties) {
+                        const popupContent = createPopupContent(feature.properties.NOME || 'Sem Nome', feature.properties);
+                        layer.bindPopup(popupContent, { className: 'custom-popup' });
+                        // Add persistent tooltip if it has a name
+                        if (feature.properties.NOME) {
+                            layer.bindTooltip(feature.properties.NOME, {
+                                permanent: false, // User requested popup only initially to avoid clutter
+                                direction: 'center',
+                                className: 'custom-label-tooltip'
+                            });
+                        }
+                    }
+                }
+            };
+            
+            if (type === 'pontos') {
+                options.pointToLayer = (feature, latlng) => {
+                    return L.circleMarker(latlng, {
+                        radius: 6,
+                        fillColor: '#e71d36',
+                        color: '#fff',
+                        weight: 2,
+                        fillOpacity: 1
+                    });
+                };
+            } else if (type === 'areas') {
+                options.style = {
+                    color: '#2ec4b6',
+                    weight: 2,
+                    fillColor: '#2ec4b6',
+                    fillOpacity: 0.4
+                };
+            } else if (type === 'rotas') {
+                options.style = {
+                    color: '#ff9f1c',
+                    weight: 4,
+                    dashArray: '5, 10'
+                };
+            }
+            
+            myLayers[type] = L.geoJSON(featureCollection, options);
+            loadedLayers[type.toUpperCase()] = myLayers[type];
+            // Don't add to map by default
+        }
+    }
+
+    function initCustomLayers() {
+        // Load data from LocalStorage
+        loadCustomLayer('pontos');
+        loadCustomLayer('areas');
+        loadCustomLayer('rotas');
+        
+        // Create Sidebar Group
+        const li = document.createElement('li');
+        li.className = 'layer-item custom-layers-group';
+        li.style.display = 'block';
+        li.style.marginTop = '15px';
+        li.style.borderTop = '1px solid rgba(255,255,255,0.1)';
+        li.style.paddingTop = '15px';
+        
+        const avenzaIcon = `<div style="width: 36px; height: 36px; border-radius: 8px; background: rgba(255, 255, 255, 0.05); display: flex; justify-content: center; align-items: center; margin-right: 12px; flex-shrink: 0;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#2ec4b6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s-8-4.5-8-11.8A8 8 0 0 1 12 2a8 8 0 0 1 8 8.2c0 7.3-8 11.8-8 11.8z"/><circle cx="12" cy="10" r="3"/></svg></div>`;
+        
+        li.innerHTML = `
+            <div class="layer-main-row" style="cursor: pointer;">
+                ${avenzaIcon}
+                <div class="layer-text-container" style="flex-grow: 1; display: flex; flex-direction: column; justify-content: center; text-align: left;">
+                    <div class="layer-name" style="font-size: 14px; font-weight: bold; color: #fff; line-height: 1;">Minhas Camadas</div>
+                    <div class="layer-subtitle" style="font-size: 9px; color: rgba(255, 255, 255, 0.4); margin-top: 2px;">Meus desenhos e rotas</div>
+                </div>
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <span class="submenu-arrow" style="font-size: 10px; color: rgba(255,255,255,0.5); font-weight: bold; width: 16px; text-align: center;">▼</span>
+                </div>
+            </div>
+            <div class="layer-submenu" style="display: none; margin-top: 10px; margin-left: 35px; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 10px; padding-bottom: 5px;">
+                ${createSubLayerToggle('pontos', 'Pontos Marcados', '#e71d36')}
+                ${createSubLayerToggle('areas', 'Áreas Desenhadas', '#2ec4b6')}
+                ${createSubLayerToggle('rotas', 'Rotas Gravadas', '#ff9f1c')}
+            </div>
+        `;
+        
+        dynamicLayerList.appendChild(li);
+        
+        // Accordion open/close logic
+        const mainRow = li.querySelector('.layer-main-row');
+        const submenu = li.querySelector('.layer-submenu');
+        const arrow = li.querySelector('.submenu-arrow');
+        
+        mainRow.addEventListener('click', () => {
+            if (submenu.style.display === 'none') {
+                submenu.style.display = 'block';
+                arrow.innerHTML = '▲';
+            } else {
+                submenu.style.display = 'none';
+                arrow.innerHTML = '▼';
+            }
+        });
+        
+        // Checkbox logic
+        ['pontos', 'areas', 'rotas'].forEach(type => {
+            const cb = li.querySelector(`#toggle-custom-${type}`);
+            if (cb) {
+                cb.addEventListener('change', (e) => {
+                    if (e.target.checked) {
+                        map.addLayer(myLayers[type]);
+                    } else {
+                        map.removeLayer(myLayers[type]);
+                    }
+                });
+            }
+        });
+    }
+
+    function createSubLayerToggle(id, label, color) {
+        return `
+            <div style="margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center;">
+                <label class="custom-checkbox" style="font-size: 12px; display: flex; align-items: center; margin: 0; width: 100%;">
+                    <input type="checkbox" id="toggle-custom-${id}">
+                    <span class="checkmark" style="--layer-color: ${color}; width: 16px; height: 16px; min-width: 16px;"></span>
+                    <span class="layer-name" style="margin-left: 10px; color: var(--text-main); font-weight: 500;">${label}</span>
+                </label>
+            </div>
+        `;
     }
 
     // Search functionality - Locate Fazenda
@@ -1238,7 +1403,336 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Toggle UI visibility on map click
     map.on('click', function() {
+        if (window.drawActive || window.measureActive) return; // Prevent hiding UI when drawing/measuring
         document.body.classList.toggle('ui-hidden');
+    });
+
+    // --- DRAWING TOOL LOGIC ---
+    let drawActive = false;
+    let drawMode = null; // 'point' | 'area'
+    let currentPolygonPoints = [];
+    let currentPolygonLine = L.polyline([], {color: '#2ec4b6', weight: 3, dashArray: '5, 10'}).addTo(map);
+    let currentPolygonFill = L.polygon([], {color: '#2ec4b6', weight: 2, fillColor: '#2ec4b6', fillOpacity: 0.2}).addTo(map);
+    let drawMarkers = L.layerGroup().addTo(map);
+    let tempDrawLine = L.polyline([], {color: '#2ec4b6', weight: 3, dashArray: '5, 10', opacity: 0.5}).addTo(map);
+
+    const btnDraw = document.getElementById('tool-draw-btn');
+    const drawPanel = document.getElementById('draw-panel');
+    const btnDrawPoint = document.getElementById('draw-mode-point');
+    const btnDrawArea = document.getElementById('draw-mode-area');
+    const btnFinishArea = document.getElementById('draw-finish-area');
+    const drawStatus = document.getElementById('draw-status');
+
+    if (drawPanel) {
+        new L.Draggable(drawPanel, document.getElementById('draw-drag-handle')).enable();
+    }
+
+    function resetDraw() {
+        drawActive = false;
+        window.drawActive = false;
+        drawMode = null;
+        currentPolygonPoints = [];
+        currentPolygonLine.setLatLngs([]);
+        currentPolygonFill.setLatLngs([]);
+        tempDrawLine.setLatLngs([]);
+        drawMarkers.clearLayers();
+        btnDraw.style.background = 'rgba(255,255,255,0.05)';
+        btnDraw.style.borderColor = 'rgba(255,255,255,0.1)';
+        drawPanel.style.display = 'none';
+        btnFinishArea.style.display = 'none';
+        drawStatus.style.display = 'none';
+        map.getContainer().style.cursor = '';
+        btnDrawPoint.style.boxShadow = 'none';
+        btnDrawArea.style.boxShadow = 'none';
+    }
+
+    btnDraw.addEventListener('click', () => {
+        if (drawActive) {
+            resetDraw();
+        } else {
+            resetDraw(); // clear state
+            drawActive = true;
+            window.drawActive = true;
+            btnDraw.style.background = 'rgba(46, 196, 182, 0.2)';
+            btnDraw.style.borderColor = '#2ec4b6';
+            drawPanel.style.display = 'flex';
+            document.getElementById('floating-tools-panel').style.display = 'none';
+        }
+    });
+
+    document.getElementById('close-draw-btn').addEventListener('click', resetDraw);
+
+    btnDrawPoint.addEventListener('click', () => {
+        drawMode = 'point';
+        btnDrawPoint.style.boxShadow = '0 0 10px #e71d36';
+        btnDrawArea.style.boxShadow = 'none';
+        drawStatus.textContent = 'Clique no mapa para marcar o ponto';
+        drawStatus.style.display = 'block';
+        btnFinishArea.style.display = 'none';
+        map.getContainer().style.cursor = 'crosshair';
+        currentPolygonPoints = [];
+        currentPolygonLine.setLatLngs([]);
+        currentPolygonFill.setLatLngs([]);
+        tempDrawLine.setLatLngs([]);
+        drawMarkers.clearLayers();
+    });
+
+    btnDrawArea.addEventListener('click', () => {
+        drawMode = 'area';
+        btnDrawArea.style.boxShadow = '0 0 10px #2ec4b6';
+        btnDrawPoint.style.boxShadow = 'none';
+        drawStatus.textContent = 'Clique no mapa para marcar os vértices (mín. 3)';
+        drawStatus.style.display = 'block';
+        btnFinishArea.style.display = 'block';
+        map.getContainer().style.cursor = 'crosshair';
+        currentPolygonPoints = [];
+        currentPolygonLine.setLatLngs([]);
+        currentPolygonFill.setLatLngs([]);
+        tempDrawLine.setLatLngs([]);
+        drawMarkers.clearLayers();
+    });
+
+    map.on('click', (e) => {
+        if (!drawActive || !drawMode) return;
+
+        if (drawMode === 'point') {
+            // Save Point Mode
+            const latlng = e.latlng;
+            openNameModal('PontoMarcado', (name) => {
+                if (name) {
+                    const feature = {
+                        type: 'Feature',
+                        geometry: { type: 'Point', coordinates: [latlng.lng, latlng.lat] },
+                        properties: { NOME: name, TIPO: 'Ponto' }
+                    };
+                    saveCustomFeature('pontos', feature);
+                    alert(`Ponto "${name}" salvo! Verifique "Minhas Camadas".`);
+                }
+                resetDraw();
+            });
+        } else if (drawMode === 'area') {
+            const latlng = e.latlng;
+            currentPolygonPoints.push(latlng);
+            
+            L.circleMarker(latlng, { radius: 5, fillColor: '#2ec4b6', color: '#000', weight: 1, fillOpacity: 1 }).addTo(drawMarkers);
+            
+            currentPolygonLine.setLatLngs(currentPolygonPoints);
+            if (currentPolygonPoints.length > 2) {
+                currentPolygonFill.setLatLngs(currentPolygonPoints);
+            }
+        }
+    });
+
+    map.on('mousemove', (e) => {
+        if (!drawActive || drawMode !== 'area' || currentPolygonPoints.length === 0) return;
+        tempDrawLine.setLatLngs([...currentPolygonPoints, e.latlng]);
+    });
+
+    btnFinishArea.addEventListener('click', () => {
+        if (currentPolygonPoints.length < 3) {
+            alert('Um polígono precisa de no mínimo 3 pontos!');
+            return;
+        }
+        
+        // Add the first point to close the polygon for Turf
+        const coords = currentPolygonPoints.map(p => [p.lng, p.lat]);
+        coords.push([currentPolygonPoints[0].lng, currentPolygonPoints[0].lat]);
+        
+        const polygon = turf.polygon([coords]);
+        const areaM2 = turf.area(polygon);
+        const areaHa = (areaM2 / 10000).toFixed(2);
+        
+        openNameModal('AreaDesenhada', (name) => {
+            if (name) {
+                const feature = {
+                    type: 'Feature',
+                    geometry: { type: 'Polygon', coordinates: [coords] },
+                    properties: { NOME: name, AREA_HA: areaHa, TIPO: 'Area' }
+                };
+                saveCustomFeature('areas', feature);
+                alert(`Área "${name}" (${areaHa} ha) salva!`);
+            }
+            resetDraw();
+        });
+    });
+
+    // --- RECORDING TOOL LOGIC ---
+    const btnRecord = document.getElementById('tool-record-btn');
+    const recordPanel = document.getElementById('record-panel');
+    const btnStartRecord = document.getElementById('record-start-btn');
+    const btnSaveRecord = document.getElementById('record-save-btn');
+    const indicator = document.getElementById('record-indicator');
+    const distRecordEl = document.getElementById('record-distance');
+    const timeRecordEl = document.getElementById('record-time');
+
+    if (recordPanel) {
+        new L.Draggable(recordPanel, document.getElementById('record-drag-handle')).enable();
+    }
+
+    let recordActive = false;
+    let isRecording = false;
+    let watchId = null;
+    let recordPoints = [];
+    let recordLine = L.polyline([], {color: '#e71d36', weight: 4}).addTo(map);
+    let recordStartTime = null;
+    let recordTimerInterval = null;
+
+    function resetRecordUI() {
+        recordActive = false;
+        isRecording = false;
+        if (watchId) navigator.geolocation.clearWatch(watchId);
+        clearInterval(recordTimerInterval);
+        
+        btnRecord.style.background = 'rgba(255,255,255,0.05)';
+        btnRecord.style.borderColor = 'rgba(255,255,255,0.1)';
+        recordPanel.style.display = 'none';
+        
+        btnStartRecord.textContent = 'INICIAR';
+        btnStartRecord.style.background = 'rgba(231, 29, 54, 0.2)';
+        btnSaveRecord.disabled = true;
+        btnSaveRecord.style.cursor = 'not-allowed';
+        indicator.style.opacity = '0.3';
+        
+        distRecordEl.textContent = '0.00 km';
+        timeRecordEl.textContent = '00:00';
+        
+        recordPoints = [];
+        recordLine.setLatLngs([]);
+    }
+
+    btnRecord.addEventListener('click', () => {
+        if (recordActive) {
+            resetRecordUI();
+        } else {
+            resetRecordUI();
+            recordActive = true;
+            btnRecord.style.background = 'rgba(231, 29, 54, 0.2)';
+            btnRecord.style.borderColor = '#e71d36';
+            recordPanel.style.display = 'flex';
+            document.getElementById('floating-tools-panel').style.display = 'none';
+        }
+    });
+
+    document.getElementById('close-record-btn').addEventListener('click', resetRecordUI);
+
+    btnStartRecord.addEventListener('click', () => {
+        if (!isRecording) {
+            // Start recording
+            if (!navigator.geolocation) {
+                alert("Seu navegador/dispositivo não suporta gravação de GPS.");
+                return;
+            }
+            
+            isRecording = true;
+            btnStartRecord.textContent = 'PAUSAR';
+            btnStartRecord.style.background = 'rgba(255, 159, 28, 0.2)'; // Orange
+            btnSaveRecord.disabled = false;
+            btnSaveRecord.style.cursor = 'pointer';
+            
+            recordStartTime = Date.now() - (recordPoints.length > 0 ? getElapsedTime() : 0);
+            
+            if (!recordTimerInterval) {
+                recordTimerInterval = setInterval(() => {
+                    const diff = Math.floor((Date.now() - recordStartTime) / 1000);
+                    const m = Math.floor(diff / 60).toString().padStart(2, '0');
+                    const s = (diff % 60).toString().padStart(2, '0');
+                    timeRecordEl.textContent = `${m}:${s}`;
+                    // Pulse indicator
+                    indicator.style.opacity = indicator.style.opacity === '1' ? '0.3' : '1';
+                }, 1000);
+            }
+            
+            watchId = navigator.geolocation.watchPosition(
+                (pos) => {
+                    const latlng = L.latLng(pos.coords.latitude, pos.coords.longitude);
+                    recordPoints.push(latlng);
+                    recordLine.setLatLngs(recordPoints);
+                    map.panTo(latlng);
+                    
+                    // Calc distance
+                    if (recordPoints.length > 1) {
+                        let d = 0;
+                        for (let i = 0; i < recordPoints.length - 1; i++) {
+                            d += recordPoints[i].distanceTo(recordPoints[i+1]);
+                        }
+                        distRecordEl.textContent = (d / 1000).toFixed(2) + ' km';
+                    }
+                },
+                (err) => console.warn(err),
+                { enableHighAccuracy: true, maximumAge: 0, timeout: 5000 }
+            );
+        } else {
+            // Pause recording
+            isRecording = false;
+            btnStartRecord.textContent = 'RETOMAR';
+            btnStartRecord.style.background = 'rgba(46, 196, 182, 0.2)';
+            navigator.geolocation.clearWatch(watchId);
+            watchId = null;
+            clearInterval(recordTimerInterval);
+            recordTimerInterval = null;
+            indicator.style.opacity = '1';
+        }
+    });
+    
+    function getElapsedTime() {
+        if (!timeRecordEl.textContent) return 0;
+        const pts = timeRecordEl.textContent.split(':');
+        if (pts.length === 2) {
+            return (parseInt(pts[0])*60 + parseInt(pts[1])) * 1000;
+        }
+        return 0;
+    }
+
+    btnSaveRecord.addEventListener('click', () => {
+        if (recordPoints.length < 2) {
+            alert('A rota é muito curta para ser salva.');
+            return;
+        }
+        // Pause first
+        if (isRecording) btnStartRecord.click();
+        
+        let distanceM = 0;
+        for (let i = 0; i < recordPoints.length - 1; i++) {
+            distanceM += recordPoints[i].distanceTo(recordPoints[i+1]);
+        }
+        
+        openNameModal('Rota_Gravada', (name) => {
+            if (name) {
+                const coords = recordPoints.map(p => [p.lng, p.lat]);
+                const feature = {
+                    type: 'Feature',
+                    geometry: { type: 'LineString', coordinates: coords },
+                    properties: { NOME: name, DISTANCIA_M: Math.round(distanceM), TEMPO: timeRecordEl.textContent, TIPO: 'Rota' }
+                };
+                saveCustomFeature('rotas', feature);
+                alert(`Rota "${name}" salva com sucesso!`);
+            }
+            resetRecordUI();
+        });
+    });
+
+    // --- MODAL UTILS ---
+    let pendingModalCallback = null;
+    const nameModal = document.getElementById('custom-name-modal');
+    const nameInput = document.getElementById('custom-name-input');
+    
+    function openNameModal(defaultName, callback) {
+        pendingModalCallback = callback;
+        nameInput.value = defaultName;
+        nameModal.style.display = 'flex';
+        nameInput.focus();
+        nameInput.select();
+    }
+    
+    document.getElementById('custom-name-cancel').addEventListener('click', () => {
+        nameModal.style.display = 'none';
+        if (pendingModalCallback) pendingModalCallback(null);
+    });
+    
+    document.getElementById('custom-name-confirm').addEventListener('click', () => {
+        const val = nameInput.value.trim();
+        nameModal.style.display = 'none';
+        if (pendingModalCallback) pendingModalCallback(val || 'Sem Nome');
     });
 
 });

@@ -164,7 +164,23 @@
                                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                     <circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline>
                                 </svg>
-                                <span style="font-size: 13px; font-weight: 500;">Traçar Rota</span>
+                                <span style="font-size: 13px; font-weight: 500;">Traçar Rota Automática</span>
+                            </button>
+
+                            <button id="tool-draw-btn" class="tool-action-btn" style="display: flex; align-items: center; gap: 12px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: #fff; padding: 12px; border-radius: 8px; cursor: pointer; transition: all 0.2s;">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M21.17 3.25a2.5 2.5 0 0 0-3.54 0L4.5 16.38V20h3.62L21.24 6.87a2.5 2.5 0 0 0-.07-3.62Z"></path>
+                                    <path d="m14 7 3 3"></path>
+                                </svg>
+                                <span style="font-size: 13px; font-weight: 500;">Desenhar Ponto/Área</span>
+                            </button>
+
+                            <button id="tool-record-btn" class="tool-action-btn" style="display: flex; align-items: center; gap: 12px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: #fff; padding: 12px; border-radius: 8px; cursor: pointer; transition: all 0.2s;">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <circle cx="12" cy="12" r="3"></circle>
+                                    <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+                                </svg>
+                                <span style="font-size: 13px; font-weight: 500;">Gravar Rota (GPS)</span>
                             </button>
                         </div>
 
@@ -262,6 +278,70 @@
                     <div id="route-info" style="display: none; padding: 10px; margin-top: 4px; background: rgba(232, 93, 4, 0.1); border: 1px solid rgba(232, 93, 4, 0.3); border-radius: 6px; text-align: center; flex-direction: column; gap: 4px;">
                         <span style="font-size: 11px; color: #f48c06; font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px;">Resumo da Rota</span>
                         <div><span style="font-size: 12px; color: #a8b8b0;">Distância Total:</span> <strong id="route-distance-text" style="color: #fff; font-size: 14px; margin-left: 5px;">Calculando...</strong></div>
+                    </div>
+                </div>
+            </div>
+            </div>
+
+            <!-- Floating Draw Window -->
+            <div id="draw-panel" style="display: none; position: absolute; bottom: 40px; left: calc(50% - 150px); z-index: 1000; width: 300px; padding: 16px; background: rgba(5, 8, 7, 0.95); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; box-shadow: 0 8px 32px rgba(0,0,0,0.5); font-size: 13px; color: #a8b8b0; flex-direction: column;">
+                <div id="draw-drag-handle" style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 8px; margin-bottom: 8px; cursor: move;">
+                    <span style="font-weight: 600; color: #fff; letter-spacing: 1px;">DESENHAR NO MAPA</span>
+                    <button id="close-draw-btn" style="background: none; border: none; color: #fff; cursor: pointer; font-size: 20px; padding: 0; line-height: 1;" title="Fechar">&times;</button>
+                </div>
+                <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+                    <button id="draw-mode-point" style="flex: 1; padding: 10px; background: rgba(231, 29, 54, 0.2); border: 1px solid #e71d36; color: #fff; border-radius: 8px; cursor: pointer; font-size: 12px; transition: all 0.2s;">
+                        📍 Ponto
+                    </button>
+                    <button id="draw-mode-area" style="flex: 1; padding: 10px; background: rgba(46, 196, 182, 0.2); border: 1px solid #2ec4b6; color: #fff; border-radius: 8px; cursor: pointer; font-size: 12px; transition: all 0.2s;">
+                        📐 Área
+                    </button>
+                </div>
+                <div id="draw-status" style="font-size: 11px; text-align: center; color: #f4a261; display: none; margin-bottom: 10px;"></div>
+                <button id="draw-finish-area" style="display: none; width: 100%; padding: 10px; background: #2ec4b6; border: none; color: #000; font-weight: bold; border-radius: 8px; cursor: pointer; transition: all 0.2s;">
+                    Concluir Área (Polígono)
+                </button>
+            </div>
+
+            <!-- Floating Record Window -->
+            <div id="record-panel" style="display: none; position: absolute; bottom: 40px; left: calc(50% - 150px); z-index: 1000; width: 300px; padding: 16px; background: rgba(5, 8, 7, 0.95); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; box-shadow: 0 8px 32px rgba(0,0,0,0.5); font-size: 13px; color: #a8b8b0; flex-direction: column;">
+                <div id="record-drag-handle" style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 8px; margin-bottom: 12px; cursor: move;">
+                    <span style="font-weight: 600; color: #fff; letter-spacing: 1px; display: flex; align-items: center; gap: 6px;">
+                        <span id="record-indicator" style="display:inline-block; width:10px; height:10px; background:#e71d36; border-radius:50%; transition: opacity 0.5s;"></span>
+                        GRAVAR ROTA
+                    </span>
+                    <button id="close-record-btn" style="background: none; border: none; color: #fff; cursor: pointer; font-size: 20px; padding: 0; line-height: 1;" title="Fechar">&times;</button>
+                </div>
+                
+                <div style="display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.02); padding: 12px; border-radius: 8px; margin-bottom: 12px;">
+                    <div style="display: flex; flex-direction: column;">
+                        <span style="font-size: 10px; color: rgba(255,255,255,0.5); text-transform: uppercase;">Distância Percorrida</span>
+                        <span id="record-distance" style="font-size: 18px; font-weight: bold; color: #fff;">0.00 km</span>
+                    </div>
+                    <div style="display: flex; flex-direction: column; text-align: right;">
+                        <span style="font-size: 10px; color: rgba(255,255,255,0.5); text-transform: uppercase;">Tempo</span>
+                        <span id="record-time" style="font-size: 18px; font-weight: bold; color: #ff9f1c;">00:00</span>
+                    </div>
+                </div>
+
+                <div style="display: flex; gap: 8px;">
+                    <button id="record-start-btn" style="flex: 1; padding: 12px; background: rgba(231, 29, 54, 0.2); border: 1px solid #e71d36; color: #fff; font-weight: bold; border-radius: 8px; cursor: pointer; transition: all 0.2s;">
+                        INICIAR
+                    </button>
+                    <button id="record-save-btn" disabled style="flex: 1; padding: 12px; background: rgba(46, 196, 182, 0.1); border: 1px solid rgba(46, 196, 182, 0.3); color: rgba(255,255,255,0.3); font-weight: bold; border-radius: 8px; cursor: not-allowed; transition: all 0.2s;">
+                        SALVAR
+                    </button>
+                </div>
+            </div>
+
+            <!-- Custom Name Modal -->
+            <div id="custom-name-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.8); z-index: 9999; justify-content: center; align-items: center;">
+                <div style="background: #121212; padding: 24px; border-radius: 12px; width: 90%; max-width: 320px; border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 10px 40px rgba(0,0,0,0.8);">
+                    <h3 id="custom-name-title" style="margin: 0 0 16px 0; color: #fff; font-size: 16px;">Salvar Item</h3>
+                    <input type="text" id="custom-name-input" placeholder="Digite o nome..." style="width: 100%; padding: 12px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.2); color: #fff; border-radius: 8px; font-size: 14px; margin-bottom: 20px;" autocomplete="off">
+                    <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                        <button id="custom-name-cancel" style="padding: 10px 16px; background: transparent; border: none; color: #a8b8b0; cursor: pointer; font-size: 13px; font-weight: 500;">Cancelar</button>
+                        <button id="custom-name-confirm" style="padding: 10px 20px; background: #2ec4b6; border: none; color: #000; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: bold;">Salvar</button>
                     </div>
                 </div>
             </div>
