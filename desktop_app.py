@@ -1,70 +1,51 @@
 import webview
-import subprocess
 import os
 import sys
-import psutil
+import threading
+import uvicorn
+
+# Helper for PyInstaller _MEIPASS
+def get_base_path():
+    if hasattr(sys, '_MEIPASS'):
+        return sys._MEIPASS
+    return os.path.dirname(os.path.abspath(__file__))
+
+base_path = get_base_path()
+
+# Import the FastAPI backend
+sys.path.insert(0, os.path.join(base_path, "backend"))
+from main import app as fastapi_app
 
 class Api:
     def __init__(self):
-        self.server_process = None
+        self.server_thread = None
+        self.server = None
+
+    def _run_uvicorn(self):
+        # Starts the uvicorn server inside the thread
+        config = uvicorn.Config(fastapi_app, host="0.0.0.0", port=8000, log_level="warning")
+        self.server = uvicorn.Server(config)
+        self.server.run()
 
     def start_server(self):
-        if self.server_process is None:
-            print("[Desktop App] Iniciando servidor FastAPI em segundo plano...")
-            # We need to start the backend/main.py
-            # Get the path to backend/main.py relative to this script
-            base_path = os.path.dirname(os.path.abspath(__file__))
-            backend_script = os.path.join(base_path, "backend", "main.py")
-            
-            # Start the process in the background. Use python executable.
-            # Creation flags to hide the console window (Windows only)
-            CREATE_NO_WINDOW = 0x08000000
-            
-            try:
-                self.server_process = subprocess.Popen(
-                    ["python", backend_script],
-                    cwd=os.path.join(base_path, "backend"),
-                    creationflags=CREATE_NO_WINDOW,
-                    stdout=subprocess.DEVNULL,
-                    stderr=subprocess.DEVNULL
-                )
-                print(f"[Desktop App] Servidor iniciado (PID: {self.server_process.pid})")
-                return {"status": "success", "message": "Servidor iniciado"}
-            except Exception as e:
-                print(f"[Desktop App] Erro ao iniciar servidor: {e}")
-                return {"status": "error", "message": str(e)}
-        else:
-            print("[Desktop App] Servidor já está rodando.")
-            return {"status": "success", "message": "Servidor já está rodando"}
+        if self.server_thread is None or not self.server_thread.is_alive():
+            print("[Desktop App] Iniciando servidor FastAPI em thread...")
+            self.server_thread = threading.Thread(target=self._run_uvicorn, daemon=True)
+            self.server_thread.start()
+            return {"status": "success", "message": "Servidor iniciado"}
+        return {"status": "success", "message": "Servidor já está rodando"}
 
     def stop_server(self):
-        if self.server_process is not None:
-            print(f"[Desktop App] Encerrando servidor (PID: {self.server_process.pid})...")
-            try:
-                # Use psutil to kill the process and all its children to be safe
-                parent = psutil.Process(self.server_process.pid)
-                for child in parent.children(recursive=True):
-                    child.kill()
-                parent.kill()
-                self.server_process = None
-                print("[Desktop App] Servidor encerrado com sucesso.")
-                return {"status": "success", "message": "Servidor encerrado"}
-            except Exception as e:
-                print(f"[Desktop App] Erro ao encerrar servidor: {e}")
-                # Fallback to normal terminate
-                try:
-                    self.server_process.terminate()
-                    self.server_process = None
-                except:
-                    pass
-                return {"status": "error", "message": str(e)}
+        if self.server is not None:
+            print("[Desktop App] Encerrando servidor FastAPI...")
+            self.server.should_exit = True
+            self.server = None
+            return {"status": "success", "message": "Servidor encerrado"}
         return {"status": "success", "message": "Nenhum servidor rodando"}
 
 if __name__ == '__main__':
     api = Api()
     
-    # Resolves path to index.html
-    base_path = os.path.dirname(os.path.abspath(__file__))
     html_file = os.path.join(base_path, "index.html")
     
     # Create the webview window
@@ -77,8 +58,7 @@ if __name__ == '__main__':
         min_size=(1024, 600)
     )
     
-    # Start the app
-    # window.on_closing is used to make sure the server shuts down when the user closes the app
+    # Ensure server shuts down when app closes
     def on_closing():
         api.stop_server()
         
