@@ -80,28 +80,29 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function performLogin() {
-        const user = inputUsername.value.trim();
-        const pass = inputPassword.value.trim();
+        try {
+            const user = inputUsername.value.trim().toUpperCase();
+            const pass = inputPassword.value.trim().toUpperCase();
 
-        // Manage saved password
-        if (rememberCheckbox) {
-            if (rememberCheckbox.checked) {
-                savedPasswords[user] = pass;
-            } else {
-                delete savedPasswords[user];
+            // Manage saved password
+            if (rememberCheckbox) {
+                if (rememberCheckbox.checked) {
+                    savedPasswords[user] = pass;
+                } else {
+                    delete savedPasswords[user];
+                }
+                localStorage.setItem('agrogis_saved_passwords', JSON.stringify(savedPasswords));
             }
-            localStorage.setItem('agrogis_saved_passwords', JSON.stringify(savedPasswords));
-        }
 
-        // Nível 1: Apenas Visualizar
-        if (user === 'AGROGIS_NDB' && pass === 'AGROGIS_NDB') {
-            grantAccess(1);
-        }
-        // Nível 2: Administrador (Importar Programação)
-        else if (user === 'AGROGIS_NDB_ADM' && pass === 'AGROGIS_NDB_ADM') {
-            grantAccess(2);
-        }
-        else {
+            // Nível 1: Apenas Visualizar
+            if (user === 'AGROGIS_NDB' && pass === 'AGROGIS_NDB') {
+                grantAccess(1);
+            }
+            // Nível 2: Administrador (Importar Programação)
+            else if (user === 'AGROGIS_NDB_ADM' && pass === 'AGROGIS_NDB_ADM') {
+                grantAccess(2);
+            }
+            else {
             loginError.style.display = 'block';
             inputUsername.style.borderColor = '#ff4d4d';
             inputPassword.style.borderColor = '#ff4d4d';
@@ -115,49 +116,56 @@ document.addEventListener('DOMContentLoaded', () => {
             setTimeout(() => container.style.transform = 'translateX(10px)', 150);
             setTimeout(() => container.style.transform = 'translateX(0)', 200);
         }
+        } catch (e) {
+            alert('Erro no login: ' + e.message + '\n' + e.stack);
+        }
     }
 
     function grantAccess(level) {
-        // Save persistent login
-        localStorage.setItem('agrogis_auth_level', level);
+        try {
+            // Save persistent login
+            localStorage.setItem('agrogis_auth_level', level);
 
-        // Hide login modal smoothly
-        if (loginOverlay) {
-            loginOverlay.style.transition = 'opacity 0.5s ease, visibility 0.5s ease';
-            loginOverlay.style.opacity = '0';
-            loginOverlay.style.visibility = 'hidden';
-            setTimeout(() => loginOverlay.remove(), 500);
-        }
-
-        // Always show the container so the UI structure remains consistent
-        if (pdfImporter) {
-            pdfImporter.style.display = 'block';
-        }
-
-        const btnImport = document.getElementById('btn-import-pdf');
-        
-        if (level === 2) {
-            // Nível 2 can use the import button
-            if (btnImport) {
-                btnImport.disabled = false;
-                btnImport.style.opacity = '1';
-                btnImport.style.cursor = 'pointer';
-                btnImport.title = "Importar PDF de programação";
+            // Hide login modal smoothly
+            if (loginOverlay) {
+                loginOverlay.style.transition = 'opacity 0.5s ease, visibility 0.5s ease';
+                loginOverlay.style.opacity = '0';
+                loginOverlay.style.visibility = 'hidden';
+                setTimeout(() => loginOverlay.remove(), 500);
             }
-        } else {
-            // Nível 1 sees the button but it is blocked
-            if (btnImport) {
-                btnImport.disabled = true;
-                btnImport.style.opacity = '0.4';
-                btnImport.style.cursor = 'not-allowed';
-                btnImport.title = "Apenas nível Operacional/Admin pode importar programação";
-                
-                // Prevent click on the file input if triggered manually
-                btnImport.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                }, true);
+
+            // Always show the container so the UI structure remains consistent
+            if (pdfImporter) {
+                pdfImporter.style.display = 'block';
             }
+
+            const btnImport = document.getElementById('btn-import-pdf');
+            
+            if (level === 2) {
+                // Nível 2 can use the import button
+                if (btnImport) {
+                    btnImport.disabled = false;
+                    btnImport.style.opacity = '1';
+                    btnImport.style.cursor = 'pointer';
+                    btnImport.title = "Importar PDF de programação";
+                }
+            } else {
+                // Nível 1 sees the button but it is blocked
+                if (btnImport) {
+                    btnImport.disabled = true;
+                    btnImport.style.opacity = '0.4';
+                    btnImport.style.cursor = 'not-allowed';
+                    btnImport.title = "Apenas nível Operacional/Admin pode importar programação";
+                    
+                    // Prevent click on the file input if triggered manually
+                    btnImport.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                    }, true);
+                }
+            }
+        } catch (e) {
+            alert('Erro ao dar acesso: ' + e.message + '\n' + e.stack);
         }
     }
 });

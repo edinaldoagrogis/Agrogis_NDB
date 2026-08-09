@@ -15,7 +15,7 @@ if exist "dist\GeoPortal" rmdir /s /q "dist\GeoPortal"
 :: Run PyInstaller
 :: --noconsole prevents the command prompt from appearing
 :: --add-data bundles the frontend files into the executable
-pyinstaller --name "GeoPortal" ^
+pyinstaller --name "GeoPortal" -y ^
     --noconsole ^
     --add-data "index.html;." ^
     --add-data "style.css;." ^
