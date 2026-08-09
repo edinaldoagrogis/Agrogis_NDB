@@ -142,8 +142,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }
         }
-
-        }
     }
     
     // Debounce function to optimize heavy viewport operations
