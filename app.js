@@ -156,6 +156,7 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Dynamic Layer Engine Stores
     const loadedLayers = {}; // Store layer objects for toggling/searching
+    window.loadedLayers = loadedLayers; // Expose for modules
     const layerLabels = { TALHOES: [] }; // Store markers for viewport culling
     const activeLabelGroups = { TALHOES: L.layerGroup().addTo(map) };
     const layerStyles = {}; // Store generated styles
@@ -1996,6 +1997,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const btnSearchGeoJSON = document.getElementById('btn-export-search-geojson');
     const btnSearchKML     = document.getElementById('btn-export-search-kml');
     const searchApiOffline = document.getElementById('weed-search-api-offline');
+    const btnSearchClear   = document.getElementById('btn-weed-search-clear');
 
     // ── Tab Switcher (acessível globalmente para o onclick no HTML) ──
     window.weedSwitchTab = function(tab) {
@@ -2357,6 +2359,14 @@ document.addEventListener('DOMContentLoaded', () => {
         if (weedLayer.getBounds().isValid()) {
             window.map.flyToBounds(weedLayer.getBounds(), { padding: [60, 60], duration: 1.5 });
         }
+        // Permitir limpar clicando no mapa
+        window.map.once('click', () => {
+            clearWeedLayer();
+            weedResultGeoJSON = null;
+            weedSearchResultGeoJSON = null;
+            resetPanel();
+            if (searchResultArea) searchResultArea.style.display = 'none';
+        });
     }
 
     function clearWeedLayer() {
@@ -2408,5 +2418,13 @@ document.addEventListener('DOMContentLoaded', () => {
     if (btnSearchAnalyze) btnSearchAnalyze.addEventListener('click', runSearchAnalysis);
     if (btnSearchGeoJSON) btnSearchGeoJSON.addEventListener('click', () => doExportGeoJSON(weedSearchResultGeoJSON, searchInput?.value));
     if (btnSearchKML)     btnSearchKML.addEventListener('click', () => doExportKML(weedSearchResultGeoJSON, searchInput?.value));
+    if (btnSearchClear) {
+        btnSearchClear.addEventListener('click', () => {
+            if (searchInput) searchInput.value = '';
+            if (searchResultArea) searchResultArea.style.display = 'none';
+            weedSearchResultGeoJSON = null;
+            clearWeedLayer();
+        });
+    }
 
 })();
