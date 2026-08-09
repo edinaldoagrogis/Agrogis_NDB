@@ -737,12 +737,12 @@ body, html {
     background: transparent !important;  
     border: none !important;  
     box-shadow: none !important;  
-    color: #f6ea7c !important;  
-    font-weight: 700 !important;  
-    font-size: 9px !important;  
+    color: rgba(255, 255, 255, 0.95) !important;  
+    font-weight: 500 !important;  
+    font-size: 8.5px !important;  
     font-family: Arial, sans-serif !important;
-    letter-spacing: 0.2px;
-    text-shadow: 1px 1px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 0px 2px 4px rgba(0,0,0,0.9) !important;
+    letter-spacing: 0.3px;
+    text-shadow: 1px 1px 1px rgba(0,0,0,0.8), -1px -1px 1px rgba(0,0,0,0.8), 1px -1px 1px rgba(0,0,0,0.8), -1px 1px 1px rgba(0,0,0,0.8) !important;
     opacity: 0 !important;
     transition: opacity 0.3s ease;
 }
@@ -853,14 +853,16 @@ body, html {
 }
 .talhao-complex-label {
     text-align: center;
-    font-size: 7px;
-    line-height: 1.1;
-    color: #000;
+    line-height: 1.0;
+    color: rgba(255, 255, 255, 0.95);
     font-family: Arial, Helvetica, sans-serif;
+    font-weight: 500;
+    text-shadow: 1px 1px 1px rgba(0,0,0,0.8), -1px -1px 1px rgba(0,0,0,0.8), 1px -1px 1px rgba(0,0,0,0.8), -1px 1px 1px rgba(0,0,0,0.8);
+    letter-spacing: 0.3px;
 }
-.tc-cod { font-size: 7px; }
-.tc-area { font-size: 7px; }
-.tc-var { font-size: 7px; }
+.tc-cod { font-size: 6px; font-weight: bold; }
+.tc-area { font-size: 7.5px; margin: 1px 0; }
+.tc-var { font-size: 5px; opacity: 0.85; }
 
 /* Equipe Marker Styles */
 .equipe-marker {

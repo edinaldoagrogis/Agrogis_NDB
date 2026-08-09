@@ -292,11 +292,11 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                 }
                 return {
-                    color: (isTalhao || isVariedade) ? '#d3d3d3' : featureColor,
-                    weight: (isTalhao || isVariedade) ? 1.2 : (isFazenda ? 0 : 1.5),
-                    opacity: isFazenda ? 0 : 0.9,
+                    color: (isTalhao || isVariedade) ? 'rgba(255, 255, 255, 0.4)' : featureColor,
+                    weight: (isTalhao || isVariedade) ? 0.6 : (isFazenda ? 0 : 1.5),
+                    opacity: isFazenda ? 0 : 0.8,
                     fillColor: featureColor,
-                    fillOpacity: (isTalhao || isVariedade) ? 1.0 : (isFazenda ? 0 : 0.2)
+                    fillOpacity: (isTalhao || isVariedade) ? 0.7 : (isFazenda ? 0 : 0.2)
                 };
             };
             
