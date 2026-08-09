@@ -1010,9 +1010,9 @@ body.disable-map-hover .leaflet-interactive {
     }
 
     .top-right-wrapper { top: 12px !important; right: 12px !important; }
-    .search-container.floating { width: 48px !important; }
-    .search-container.floating:focus-within { width: 220px !important; }
-    .search-container.floating #layer-search { padding-left: 38px !important; font-size: 11px !important; }
+    .search-container.floating { width: 200px !important; }
+    .search-container.floating:focus-within { width: 240px !important; }
+    .search-container.floating #layer-search { padding-left: 32px !important; font-size: 13px !important; }
     .basemap-selector { width: 48px !important; overflow: hidden; }
     .basemap-selector:hover { width: 140px !important; }
     .topbar-light { padding: 0 10px !important; }
