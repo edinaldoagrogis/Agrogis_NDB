@@ -690,33 +690,7 @@ body, html {
         right: 10px !important;
         gap: 8px !important;
     }
-    /* Compact Search on Mobile */
-    .search-container.floating {
-        width: 44px;
-        transition: width 0.3s ease;
-        overflow: hidden;
-        border-radius: 8px;
-        background: rgba(10, 15, 13, 0.6);
-    }
-    .search-container.floating:focus-within {
-        width: 220px;
-    }
-    .search-container.floating #layer-search {
-        padding-left: 36px;
-        color: transparent;
-        background: transparent;
-        border: none;
-    }
-    .search-container.floating:focus-within #layer-search {
-        color: var(--text-main);
-    }
-    .search-container.floating .search-icon {
-        left: 14px;
-        font-size: 16px;
-    }
-    .top-right-controls {
-        display: none !important;
-    }
+    /* Compact Search removed for better UX */
     
     /* Mobile Performance Boost: Disable heavy blur filters */
     .sidebar, 
