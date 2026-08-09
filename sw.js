@@ -1,4 +1,4 @@
-const CACHE_NAME = 'agrogis-v24';
+const CACHE_NAME = 'agrogis-v25';
 
 // Core assets to pre-cache when the Service Worker installs
 const PRECACHE_URLS = [
@@ -16,7 +16,8 @@ const PRECACHE_URLS = [
     'https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.css',
     'https://unpkg.com/@turf/turf@6/turf.min.js',
     'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js',
-    'https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.js'
+    'https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.js',
+    'https://unpkg.com/leaflet-rotate@0.2.8/dist/leaflet-rotate.js'
 ];
 
 self.addEventListener('install', event => {
