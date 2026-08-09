@@ -1080,8 +1080,6 @@ loadedLayers[type.toUpperCase()] = myLayers[type];
         };
 
     function initCustomLayers() {
-        window.applyCustomPassword = applyCustomPassword;
-        window.clearCustomPasswords = clearCustomPasswords;
         
         loadCustomLayer('pontos');
         loadCustomLayer('areas');
