@@ -795,8 +795,40 @@ document.addEventListener('DOMContentLoaded', () => {
             let options = {
                 onEachFeature: (feature, layer) => {
                     if (feature.properties) {
-                        const popupContent = createPopupContent(feature.properties.NOME || 'Sem Nome', feature.properties);
-                        layer.bindPopup(popupContent, { className: 'custom-popup' });
+                        // Bind Popup with Action Buttons
+                        const baseContent = createPopupContent(feature.properties.NOME || 'Sem Nome', feature.properties);
+                        const popupContainer = document.createElement('div');
+                        popupContainer.innerHTML = baseContent;
+                        
+                        const actionsDiv = document.createElement('div');
+                        actionsDiv.style.marginTop = '10px';
+                        actionsDiv.style.borderTop = '1px solid rgba(255,255,255,0.1)';
+                        actionsDiv.style.paddingTop = '8px';
+                        actionsDiv.style.display = 'flex';
+                        actionsDiv.style.justifyContent = 'space-around';
+                        
+                        const btnEdit = document.createElement('button');
+                        btnEdit.innerHTML = '✏️ Editar';
+                        btnEdit.style.cssText = 'background: rgba(46, 196, 182, 0.1); border: 1px solid #2ec4b6; border-radius: 4px; color: #2ec4b6; font-size: 12px; cursor: pointer; padding: 4px 8px; flex-grow: 1; margin-right: 5px;';
+                        btnEdit.onclick = () => {
+                            map.closePopup();
+                            editCustomFeatureName(type, feature.properties.id, feature.properties.NOME || 'Sem Nome');
+                        };
+                        
+                        const btnDel = document.createElement('button');
+                        btnDel.innerHTML = '🗑️ Excluir';
+                        btnDel.style.cssText = 'background: rgba(231, 29, 54, 0.1); border: 1px solid #e71d36; border-radius: 4px; color: #e71d36; font-size: 12px; cursor: pointer; padding: 4px 8px; flex-grow: 1; margin-left: 5px;';
+                        btnDel.onclick = () => {
+                            map.closePopup();
+                            deleteCustomFeature(type, feature.properties.id);
+                        };
+                        
+                        actionsDiv.appendChild(btnEdit);
+                        actionsDiv.appendChild(btnDel);
+                        popupContainer.appendChild(actionsDiv);
+                        
+                        layer.bindPopup(popupContainer, { className: 'custom-popup' });
+                        
                         if (feature.properties.NOME) {
                             layer.bindTooltip(feature.properties.NOME, {
                                 permanent: false,
@@ -804,27 +836,6 @@ document.addEventListener('DOMContentLoaded', () => {
                                 className: 'custom-label-tooltip'
                             });
                         }
-                        
-                        // Evento de pressionar/direito para abrir opções
-                        layer.on('contextmenu', (e) => {
-                            showContextMenu(type, feature.properties.id, feature.properties.NOME || 'Sem Nome', e.latlng);
-                            L.DomEvent.stopPropagation(e);
-                        });
-                        
-                        // Fallback manual de Pressionar e Segurar (Long Press) para Mobile
-                        let pressTimer;
-                        layer.on('mousedown touchstart', (e) => {
-                            clearTimeout(pressTimer);
-                            pressTimer = setTimeout(() => {
-                                let latlng = e.latlng;
-                                if (!latlng && layer.getLatLng) latlng = layer.getLatLng();
-                                if (!latlng && layer.getBounds) latlng = layer.getBounds().getCenter();
-                                showContextMenu(type, feature.properties.id, feature.properties.NOME || 'Sem Nome', latlng);
-                            }, 600);
-                        });
-                        layer.on('mouseup mouseout mousemove touchend touchcancel', () => {
-                            clearTimeout(pressTimer);
-                        });
                     }
                 }
             };
