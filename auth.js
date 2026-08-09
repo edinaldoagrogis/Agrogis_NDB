@@ -130,7 +130,9 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         // Always show the container so the UI structure remains consistent
-        pdfImporter.style.display = 'block';
+        if (pdfImporter) {
+            pdfImporter.style.display = 'block';
+        }
 
         const btnImport = document.getElementById('btn-import-pdf');
         
