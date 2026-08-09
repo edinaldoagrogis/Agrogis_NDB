@@ -17,24 +17,25 @@ document.addEventListener('DOMContentLoaded', () => {
         options: { position: 'bottomright' },
         onAdd: function(map) {
             const container = L.DomUtil.create('div', 'leaflet-bar leaflet-control');
-            container.style.backgroundColor = 'rgba(5, 8, 7, 0.85)';
+            container.style.backgroundColor = 'var(--bg-secondary)';
             container.style.border = '1px solid rgba(255,255,255,0.1)';
-            container.style.width = '34px';
-            container.style.height = '34px';
+            container.style.width = '44px';
+            container.style.height = '44px';
             container.style.display = 'flex';
             container.style.justifyContent = 'center';
             container.style.alignItems = 'center';
             container.style.cursor = 'pointer';
-            container.style.borderRadius = '8px';
+            container.style.borderRadius = '12px';
             container.style.marginBottom = '10px';
+            container.style.marginRight = '10px';
             container.style.backdropFilter = 'blur(12px)';
             container.title = 'Habilitar/Desabilitar Rotação Livre';
 
             const icon = L.DomUtil.create('div', '', container);
             icon.innerHTML = '🧭';
-            icon.style.fontSize = '20px';
+            icon.style.fontSize = '24px';
             icon.style.transition = 'opacity 0.2s';
-            icon.style.opacity = '0.4'; // Default locked state (greyed out)
+            icon.style.opacity = '0.5'; // Default locked state (greyed out)
             
             let isUnlocked = false;
             let rafId = null;
@@ -86,22 +87,22 @@ document.addEventListener('DOMContentLoaded', () => {
         },
         onAdd: function (map) {
             const container = L.DomUtil.create('div', 'leaflet-bar leaflet-control leaflet-control-custom-locate');
-            container.style.backgroundColor = '#ffffff';
-            container.style.border = 'none';
-            container.style.borderRadius = '50%';
-            container.style.boxShadow = '0 4px 10px rgba(0,0,0,0.2)';
+            container.style.backgroundColor = 'var(--bg-secondary)';
+            container.style.border = '1px solid rgba(255,255,255,0.1)';
+            container.style.borderRadius = '12px';
+            container.style.backdropFilter = 'blur(12px)';
             container.style.width = '44px';
             container.style.height = '44px';
             container.style.cursor = 'pointer';
             container.style.display = 'flex';
             container.style.justifyContent = 'center';
             container.style.alignItems = 'center';
-            container.style.marginTop = '10px';
+            container.style.marginBottom = '10px';
             container.style.marginRight = '10px';
             container.title = 'Minha Localização';
 
             const icon = L.DomUtil.create('span', '', container);
-            icon.innerHTML = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#333333" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="3 11 22 2 13 21 11 13 3 11"></polygon></svg>`;
+            icon.innerHTML = `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--text-main)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="3 11 22 2 13 21 11 13 3 11"></polygon></svg>`;
 
             container.onclick = function(e){
                 L.DomEvent.stopPropagation(e);
@@ -117,8 +118,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }
             
-            container.onmouseover = function() { container.style.backgroundColor = '#f5f5f5'; };
-            container.onmouseout = function() { container.style.backgroundColor = '#ffffff'; };
+            container.onmouseover = function() { container.style.backgroundColor = 'rgba(255, 255, 255, 0.1)'; };
+            container.onmouseout = function() { container.style.backgroundColor = 'var(--bg-secondary)'; };
 
             return container;
         }
