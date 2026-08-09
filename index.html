@@ -263,6 +263,11 @@
                     </div>
                 </div>
 
+                <!-- Floating Update App Button -->
+                <button id="btn-update-app-floating" title="Atualizar App e Limpar Cache" style="width: 44px; height: 44px; border-radius: 12px; background: rgba(5, 8, 7, 0.85); backdrop-filter: blur(12px); border: 1px solid rgba(0, 150, 94, 0.5); color: #00965e; display: flex; justify-content: center; align-items: center; cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,0.3); transition: all 0.2s;">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.92-10.44l5.58 5.58"/></svg>
+                </button>
+
                 <script>
                     document.getElementById('floating-layers-btn').addEventListener('click', function(e) {
                         e.stopPropagation();
@@ -408,6 +413,29 @@
                     } else {
                         routeBody.style.display = 'none';
                         minRouteBtn.innerHTML = '+';
+                    }
+                });
+            }
+
+            // Force Update App Button Logic
+            const btnUpdateApp = document.getElementById('btn-update-app-floating');
+            if (btnUpdateApp) {
+                btnUpdateApp.addEventListener('click', () => {
+                    const icon = btnUpdateApp.querySelector('svg');
+                    if(icon) icon.style.animation = 'spin 1s linear infinite';
+                    btnUpdateApp.style.opacity = '0.5';
+                    btnUpdateApp.textContent = 'Limpando Cache...';
+                    
+                    if ('serviceWorker' in navigator && caches) {
+                        caches.keys().then(function(names) {
+                            for (let name of names) {
+                                caches.delete(name);
+                            }
+                        }).then(() => {
+                            window.location.reload(true);
+                        });
+                    } else {
+                        window.location.reload(true);
                     }
                 });
             }
