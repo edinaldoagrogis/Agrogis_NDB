@@ -984,11 +984,40 @@ body.disable-map-hover .leaflet-interactive {
     }
 
     .top-right-wrapper { top: 12px !important; right: 12px !important; }
-    .search-container.floating { width: 200px !important; }
-    .search-container.floating:focus-within { width: 240px !important; }
-    .search-container.floating #layer-search { padding-left: 32px !important; font-size: 13px !important; }
-    .basemap-selector { width: 48px !important; overflow: hidden; }
-    .basemap-selector:hover { width: 140px !important; }
+    .top-right-controls {
+        background: transparent !important;
+        border: none !important;
+        box-shadow: none !important;
+        padding: 0 !important;
+    }
+
+    .search-container.floating { 
+        width: 44px !important; 
+        border-radius: 22px !important;
+        background: rgba(10, 15, 13, 0.8) !important;
+        transition: width 0.3s ease !important;
+        overflow: hidden !important;
+    }
+    .search-container.floating:focus-within { 
+        width: 220px !important; 
+    }
+    .search-container.floating #layer-search { 
+        padding-left: 38px !important; 
+        font-size: 13px !important; 
+        background: transparent !important;
+        border: none !important;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+    .search-container.floating:focus-within #layer-search {
+        opacity: 1;
+    }
+    .search-container.floating .search-icon { 
+        left: 14px !important; 
+        font-size: 16px !important; 
+    }
+
+    .basemap-selector { display: none !important; }
     .topbar-light { padding: 0 10px !important; }
 }
 
