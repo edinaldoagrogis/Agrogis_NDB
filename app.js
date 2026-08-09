@@ -1432,4 +1432,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // GPS is auto-activated above now
 
+    // Toggle UI visibility on map click
+    map.on('click', function() {
+        document.body.classList.toggle('ui-hidden');
+    });
+
 });

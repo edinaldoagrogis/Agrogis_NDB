@@ -1098,4 +1098,17 @@ body.disable-map-hover .leaflet-interactive {
 /* Elevate bottom-right controls so they don't hide behind mobile bottom bar */
 .leaflet-bottom.leaflet-right {
     margin-bottom: 75px !important;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+/* UI Hidden State (Full Screen Map Mode) */
+.top-right-wrapper {
+    transition: opacity 0.3s ease, visibility 0.3s ease !important;
+}
+
+body.ui-hidden .top-right-wrapper,
+body.ui-hidden .leaflet-bottom.leaflet-right {
+    opacity: 0 !important;
+    visibility: hidden !important;
+    pointer-events: none !important;
 }
