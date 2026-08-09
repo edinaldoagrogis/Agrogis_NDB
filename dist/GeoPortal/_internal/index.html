@@ -268,7 +268,8 @@
                 <!-- Abas de Navegação -->
                 <div style="display: flex; border-bottom: 1px solid rgba(255,255,255,0.06);">
                     <button id="weed-tab-map" onclick="weedSwitchTab('map')" style="flex:1; padding: 10px; background: rgba(255,0,0,0.12); border: none; border-bottom: 2px solid #ff1744; color: #ff6666; font-size: 11px; font-weight: 600; cursor: pointer;">🗺️ Pelo Mapa</button>
-                    <button id="weed-tab-search" onclick="weedSwitchTab('search')" style="flex:1; padding: 10px; background: none; border: none; border-bottom: 2px solid transparent; color: rgba(255,255,255,0.4); font-size: 11px; font-weight: 600; cursor: pointer;">🔎 Pesquisar Fazenda</button>
+                    <button id="weed-tab-search" onclick="weedSwitchTab('search')" style="flex:1; padding: 10px; background: none; border: none; border-bottom: 2px solid transparent; color: rgba(255,255,255,0.4); font-size: 11px; font-weight: 600; cursor: pointer;">🔎 Buscar</button>
+                    <button id="weed-tab-general" onclick="weedSwitchTab('general')" style="flex:1; padding: 10px; background: none; border: none; border-bottom: 2px solid transparent; color: rgba(255,255,255,0.4); font-size: 11px; font-weight: 600; cursor: pointer;">🌎 Geral</button>
                 </div>
 
                 <!-- ABA: Pelo Mapa -->
@@ -401,6 +402,51 @@
                     </div>
                     <div id="weed-search-api-offline" style="display: none; margin-top: 12px; font-size: 11px; color: #ff9f1c; background: rgba(255,159,28,0.08); border: 1px solid rgba(255,159,28,0.3); border-radius: 8px; padding: 10px;">
                         ⚠️ Servidor offline. Iniciando em segundo plano, aguarde alguns segundos...
+                    </div>
+                </div>
+
+                <!-- ABA: Geral (Todas as Fazendas) -->
+                <div id="weed-tab-content-general" style="display: none; padding: 16px;">
+                    <div style="background: rgba(255,255,255,0.04); border-radius: 10px; padding: 12px; margin-bottom: 14px; border: 1px solid rgba(255,255,255,0.06);">
+                        <div style="font-size: 13px; font-weight: 600; color: #fff; margin-bottom: 4px;">Analisar Todas as Fazendas</div>
+                        <div style="font-size: 11px; color: rgba(255,255,255,0.5);">Esta ação analisará iterativamente todas as fazendas carregadas no mapa.</div>
+                    </div>
+
+                    <button id="btn-weed-analyze-general" onclick="runGlobalAnalysis()" style="
+                        width: 100%; padding: 13px; border-radius: 10px;
+                        background: linear-gradient(135deg, #c62828, #ff1744);
+                        border: none; color: #fff; font-size: 13px; font-weight: 700;
+                        cursor: pointer; display: flex; align-items: center;
+                        justify-content: center; gap: 8px; transition: all 0.2s;
+                        box-shadow: 0 4px 12px rgba(255,23,68,0.3);
+                    ">
+                        <span id="weed-btn-icon-general">🌎</span>
+                        <span id="weed-btn-text-general">Iniciar Análise Global</span>
+                    </button>
+
+                    <!-- Progresso Geral -->
+                    <div id="weed-general-status-area" style="display: none; margin-top: 14px; background: rgba(255,255,255,0.03); border-radius: 10px; padding: 12px;">
+                        <div style="font-size: 10px; color: rgba(255,255,255,0.3); margin-bottom: 8px; letter-spacing: 1px;">PROGRESSO GLOBAL</div>
+                        <div style="width: 100%; background: rgba(255,255,255,0.1); border-radius: 4px; height: 8px; overflow: hidden; margin-bottom: 8px;">
+                            <div id="weed-general-progress-bar" style="height: 100%; width: 0%; background: #ff1744; transition: width 0.3s;"></div>
+                        </div>
+                        <div id="weed-general-progress-text" style="font-size: 11px; color: #ff6666; font-weight: 600; text-align: center;">0 / 0 Fazendas</div>
+                        
+                        <ul id="weed-general-log" style="margin: 10px 0 0 0; padding-left: 14px; font-size: 10px; color: rgba(255,255,255,0.4); max-height: 80px; overflow-y: auto;">
+                            <!-- logs -->
+                        </ul>
+                    </div>
+
+                    <!-- Resultado Global -->
+                    <div id="weed-general-result-area" style="display: none; margin-top: 14px; background: rgba(255,255,255,0.03); border-radius: 10px; padding: 12px; border: 1px solid rgba(255,23,68,0.3);">
+                        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">
+                            <div style="font-size: 18px;">✅</div>
+                            <div style="font-size: 12px; font-weight: 700; color: #fff;">Análise Concluída</div>
+                        </div>
+                        <div id="weed-general-result-msg" style="font-size: 11px; color: rgba(255,255,255,0.7); line-height: 1.4;"></div>
+                        <div style="display:flex; gap:8px; margin-top: 12px;">
+                            <button onclick="downloadGlobalGeoJSON()" style="flex:1; padding: 8px; border-radius: 8px; background: rgba(46,196,182,0.1); border: 1px solid #2ec4b6; color: #2ec4b6; font-size: 11px; font-weight: 600; cursor: pointer;">📥 Baixar Tudo (GeoJSON)</button>
+                        </div>
                     </div>
                 </div>
             </div>

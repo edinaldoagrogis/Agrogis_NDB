@@ -864,11 +864,203 @@ tryInitLayers();
             }
             
             myLayers[type] = L.geoJSON(featureCollection, options);
-            loadedLayers[type.toUpperCase()] = myLayers[type];
+loadedLayers[type.toUpperCase()] = myLayers[type];
         }
     }
 
     function initCustomLayers() {
+        window.applyCustomPassword = applyCustomPassword;
+        window.clearCustomPasswords = clearCustomPasswords;
+
+        // ── Análise Global (Todas as Fazendas) ───────────────────────────
+        let globalAnalysisResults = { type: 'FeatureCollection', features: [] };
+        let isGlobalAnalysisRunning = false;
+
+        window.runGlobalAnalysis = async function() {
+            if (isGlobalAnalysisRunning) return;
+            
+            // Coletar todos os IDs de fazendas únicas que estão carregadas no mapa
+            const seenFarms = new Set();
+            const farmsList = [];
+            
+            if (!window.loadedLayers) {
+                alert("O mapa ainda não terminou de carregar os dados das fazendas. Tente novamente em instantes.");
+                return;
+            }
+
+            Object.keys(window.loadedLayers).forEach(layerName => {
+                const mapLayer = window.loadedLayers[layerName];
+                if (!mapLayer || !mapLayer.eachLayer) return;
+                mapLayer.eachLayer(layer => {
+                    const props = layer.feature && layer.feature.properties;
+                    if (!props) return;
+                    const rawName = props.NOME_FAZ || props['DL DESCFUNDOA'] || 'Fazenda Desconhecida';
+                    const rawId = props.FAZENDA || props.DL_FUNDOAGRIC || props['DL FUNDOAGRIC'];
+                    
+                    if (rawId) {
+                        const cleanIdStr = String(rawId).split(',')[0].split('.')[0].trim();
+                        if (cleanIdStr && !seenFarms.has(cleanIdStr)) {
+                            seenFarms.add(cleanIdStr);
+                            farmsList.push({ id: cleanIdStr, name: rawName, originalId: rawId });
+                        }
+                    }
+                });
+            });
+
+            if (farmsList.length === 0) {
+                alert("Nenhuma fazenda encontrada nos dados carregados.");
+                return;
+            }
+
+            // Setup UI
+            isGlobalAnalysisRunning = true;
+            globalAnalysisResults = { type: 'FeatureCollection', features: [] };
+            
+            const btn = document.getElementById('btn-weed-analyze-general');
+            const icon = document.getElementById('weed-btn-icon-general');
+            const text = document.getElementById('weed-btn-text-general');
+            const statusArea = document.getElementById('weed-general-status-area');
+            const progressBar = document.getElementById('weed-general-progress-bar');
+            const progressText = document.getElementById('weed-general-progress-text');
+            const logArea = document.getElementById('weed-general-log');
+            const resultArea = document.getElementById('weed-general-result-area');
+            const resultMsg = document.getElementById('weed-general-result-msg');
+
+            if(btn) btn.disabled = true;
+            if(icon) icon.innerHTML = '<div style="width:14px;height:14px;border:2px solid #fff;border-top-color:transparent;border-radius:50%;animation:spin 1s linear infinite;"></div>';
+            if(text) text.innerText = 'Análise em Andamento...';
+            if(statusArea) statusArea.style.display = 'block';
+            if(resultArea) resultArea.style.display = 'none';
+            if(logArea) logArea.innerHTML = '';
+            
+            const totalFarms = farmsList.length;
+            let successCount = 0;
+            let failCount = 0;
+            let totalHa = 0;
+
+            const addLog = (msg, color = 'rgba(255,255,255,0.6)') => {
+                if(!logArea) return;
+                const li = document.createElement('li');
+                li.style.color = color;
+                li.style.marginBottom = '4px';
+                li.innerText = msg;
+                logArea.appendChild(li);
+                logArea.scrollTop = logArea.scrollHeight;
+            };
+
+            for (let i = 0; i < totalFarms; i++) {
+                const farm = farmsList[i];
+                
+                // Atualizar progresso
+                const percent = Math.round((i / totalFarms) * 100);
+                if(progressBar) progressBar.style.width = percent + '%';
+                if(progressText) progressText.innerText = `${i+1} / ${totalFarms} Fazendas`;
+                
+                addLog(`Buscando dados da ${farm.name}...`);
+                
+                // Obter features da fazenda
+                const features = getFazendaFeatures(farm.originalId);
+                if (features.length === 0) {
+                    addLog(`Ignorando ${farm.name}: Sem polígonos válidos.`, '#ff9f1c');
+                    failCount++;
+                    continue;
+                }
+
+                const payload = {
+                    geojson: { type: 'FeatureCollection', features: features },
+                    cod_talhao: farm.id,
+                    nome_faz: farm.name,
+                    days_back: 20,
+                    max_cloud: 20
+                };
+
+                try {
+                    addLog(`Iniciando detecção para ${farm.name}...`);
+                    const response = await fetch(`${API_URL}/analyze`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+
+                    if (!response.ok) {
+                        const errData = await response.json().catch(() => ({}));
+                        const detail = errData.detail || 'Erro na requisição';
+                        addLog(`Erro em ${farm.name}: ${detail}`, '#ff6666');
+                        failCount++;
+                    } else {
+                        const data = await response.json();
+                        if (data.success) {
+                            const ha = data.total_infested_ha || 0;
+                            const rebolCount = (data.reboleiras || []).length;
+                            
+                            if (rebolCount > 0) {
+                                addLog(`Encontrado: ${ha} ha infestados (${rebolCount} focos) na ${farm.name}`, '#4CAF50');
+                                totalHa += ha;
+                                
+                                // Acumular resultados
+                                if (data.geojson_collection && data.geojson_collection.features) {
+                                    // Adicionar o nome da fazenda nas propriedades de cada reboleira
+                                    data.geojson_collection.features.forEach(f => {
+                                        if(!f.properties) f.properties = {};
+                                        f.properties.FAZENDA = farm.name;
+                                        f.properties.FAZENDA_ID = farm.id;
+                                    });
+                                    globalAnalysisResults.features.push(...data.geojson_collection.features);
+                                }
+                            } else {
+                                addLog(`Limpo: Nenhum foco detectado na ${farm.name} (Nuvens: ${data.cloud_cover}%)`, '#888');
+                            }
+                            successCount++;
+                        } else {
+                            addLog(`Falha em ${farm.name}: ${data.message}`, '#ff9f1c');
+                            failCount++;
+                        }
+                    }
+                } catch (error) {
+                    addLog(`Exceção em ${farm.name}: Servidor não respondeu.`, '#ff6666');
+                    failCount++;
+                }
+            }
+
+            // Finalizou o loop
+            if(progressBar) progressBar.style.width = '100%';
+            if(btn) btn.disabled = false;
+            if(icon) icon.innerHTML = '🌎';
+            if(text) text.innerText = 'Iniciar Análise Global';
+
+            // Renderizar no mapa se encontrou reboleiras
+            if (globalAnalysisResults.features.length > 0) {
+                renderWeedLayer(globalAnalysisResults);
+            }
+
+            // Exibir resumo
+            if(resultArea) resultArea.style.display = 'block';
+            if(resultMsg) {
+                resultMsg.innerHTML = `
+                    Processamos <strong>${totalFarms} fazendas</strong>.<br>
+                    Sucessos: <strong>${successCount}</strong> | Falhas: <strong>${failCount}</strong><br>
+                    <div style="margin-top: 8px; padding: 10px; background: rgba(255,23,68,0.1); border: 1px solid rgba(255,23,68,0.3); border-radius: 8px;">
+                        Total Infestado Global: <strong style="color: #ff1744; font-size: 14px;">${totalHa.toFixed(2)} ha</strong><br>
+                        Total Focos Global: <strong style="color: #ff9f1c; font-size: 14px;">${globalAnalysisResults.features.length}</strong>
+                    </div>
+                `;
+            }
+
+            isGlobalAnalysisRunning = false;
+        };
+
+        window.downloadGlobalGeoJSON = function() {
+            if (!globalAnalysisResults || !globalAnalysisResults.features || globalAnalysisResults.features.length === 0) {
+                alert('Não há dados de infestação global para exportar.');
+                return;
+            }
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(globalAnalysisResults));
+            const dlAnchorElem = document.createElement('a');
+            dlAnchorElem.setAttribute("href", dataStr);
+            dlAnchorElem.setAttribute("download", `Reboleiras_Geral_${new Date().toISOString().slice(0,10)}.geojson`);
+            dlAnchorElem.click();
+        };
+
         loadCustomLayer('pontos');
         loadCustomLayer('areas');
         loadCustomLayer('rotas');
@@ -1995,19 +2187,40 @@ tryInitLayers();
     window.weedSwitchTab = function(tab) {
         const mapContent    = document.getElementById('weed-tab-content-map');
         const searchContent = document.getElementById('weed-tab-content-search');
+        const generalContent = document.getElementById('weed-tab-content-general');
+        
         const tabMap        = document.getElementById('weed-tab-map');
         const tabSearch     = document.getElementById('weed-tab-search');
+        const tabGeneral    = document.getElementById('weed-tab-general');
+        
+        // Reset all contents
+        if (mapContent) mapContent.style.display = 'none';
+        if (searchContent) searchContent.style.display = 'none';
+        if (generalContent) generalContent.style.display = 'none';
+        
+        // Reset all tabs
+        const inactiveBg = 'none';
+        const inactiveColor = 'rgba(255,255,255,0.4)';
+        const inactiveBorder = 'transparent';
+        
+        const activeBg = 'rgba(255,0,0,0.12)';
+        const activeColor = '#ff6666';
+        const activeBorder = '#ff1744';
+
+        if (tabMap) { tabMap.style.background = inactiveBg; tabMap.style.color = inactiveColor; tabMap.style.borderBottomColor = inactiveBorder; }
+        if (tabSearch) { tabSearch.style.background = inactiveBg; tabSearch.style.color = inactiveColor; tabSearch.style.borderBottomColor = inactiveBorder; }
+        if (tabGeneral) { tabGeneral.style.background = inactiveBg; tabGeneral.style.color = inactiveColor; tabGeneral.style.borderBottomColor = inactiveBorder; }
+
         if (tab === 'map') {
-            if (mapContent)    mapContent.style.display    = 'block';
-            if (searchContent) searchContent.style.display = 'none';
-            if (tabMap)    { tabMap.style.background = 'rgba(255,0,0,0.12)'; tabMap.style.borderBottomColor = '#ff1744'; tabMap.style.color = '#ff6666'; }
-            if (tabSearch) { tabSearch.style.background = 'none'; tabSearch.style.borderBottomColor = 'transparent'; tabSearch.style.color = 'rgba(255,255,255,0.4)'; }
-        } else {
-            if (mapContent)    mapContent.style.display    = 'none';
+            if (mapContent) mapContent.style.display = 'block';
+            if (tabMap) { tabMap.style.background = activeBg; tabMap.style.color = activeColor; tabMap.style.borderBottomColor = activeBorder; }
+        } else if (tab === 'search') {
             if (searchContent) searchContent.style.display = 'block';
-            if (tabSearch) { tabSearch.style.background = 'rgba(255,0,0,0.12)'; tabSearch.style.borderBottomColor = '#ff1744'; tabSearch.style.color = '#ff6666'; }
-            if (tabMap)    { tabMap.style.background = 'none'; tabMap.style.borderBottomColor = 'transparent'; tabMap.style.color = 'rgba(255,255,255,0.4)'; }
+            if (tabSearch) { tabSearch.style.background = activeBg; tabSearch.style.color = activeColor; tabSearch.style.borderBottomColor = activeBorder; }
             populateFazendaSearch();
+        } else if (tab === 'general') {
+            if (generalContent) generalContent.style.display = 'block';
+            if (tabGeneral) { tabGeneral.style.background = activeBg; tabGeneral.style.color = activeColor; tabGeneral.style.borderBottomColor = activeBorder; }
         }
     };
 
