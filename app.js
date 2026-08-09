@@ -344,7 +344,11 @@ document.addEventListener('DOMContentLoaded', () => {
             // Identify specific layers
             const isFazenda = layerName.toUpperCase().includes('FAZENDA');
             const isTalhao = layerName.toUpperCase().includes('TALHO');
-            const isVariedade = layerName.toUpperCase().includes('VARIEDADE');
+            
+            // EXCLUI CAMADA DE VARIEDADE (Ignora no carregamento)
+            if (layerName.toUpperCase().includes('VARIEDADE')) {
+                continue;
+            }
 
             if (isFazenda) baseColor = '#ff9f1c'; 
             if (isTalhao) baseColor = '#2ec4b6'; 
@@ -552,10 +556,6 @@ document.addEventListener('DOMContentLoaded', () => {
                         <span class="checkmark" style="--layer-color: #f6ea7c; width: 14px; height: 14px; min-width: 14px;"></span>
                         <span class="layer-name" style="margin-left: 8px; color: var(--text-main);">Exibir Rótulos</span>
                     </label>
-                    <button class="chart-btn" data-layer-key="${layerName}" data-safe-id="${safeId}" style="background: rgba(0,0,0,0.05); border: 1px solid rgba(0,0,0,0.1); color: var(--text-main); padding: 6px 10px; border-radius: 4px; font-size: 11px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 5px; width: 100%; transition: all 0.2s; justify-content: center;">
-                        <span>📊</span> Exibir Gráfico
-                    </button>
-                    <div id="chart-container-${safeId}" class="inline-chart-container" style="display: none;"></div>
                 </div>
             `;
 
@@ -734,125 +734,8 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Handle inline chart buttons
-    document.addEventListener('click', (e) => {
-        const btn = e.target.closest('.chart-btn');
-        if (!btn) return;
-        
-        try {
-            const layerKey = btn.getAttribute('data-layer-key');
-            const safeId = btn.getAttribute('data-safe-id');
-            const container = document.getElementById(`chart-container-${safeId}`);
-            
-            if (!container) throw new Error("Container not found");
-
-            // Toggle logic: close if open
-            if (container.style.display === 'block') {
-                container.style.display = 'none';
-                return;
-            }
-
-            const layerGroup = loadedLayers[layerKey];
-            if (!layerGroup) throw new Error("Layer not found: " + layerKey);
-
-            const isVariedade = layerKey.toUpperCase().includes('VARIEDADE');
-
-            // Aggregate area
-            const aggregates = {};
-            let totalArea = 0;
-            
-            layerGroup.eachLayer(layer => {
-                const props = layer.feature.properties || {};
-                let tipo = props['DL TIPOCONTRA'] || props.TIPOCONTRA || 'NÃO DEFINIDO';
-                
-                if (isVariedade) {
-                    tipo = props['DL VARIEDADE'] || props.VARIEDADE || props.variedade || 'NÃO DEFINIDO';
-                }
-                
-                // Extract area, standardizing the property name
-                const area = parseFloat(props.AREA_TOTAL || props['DL AREA'] || props.AREA || 0);
-                
-                if (!aggregates[tipo]) aggregates[tipo] = 0;
-                aggregates[tipo] += area;
-                totalArea += area;
-            });
-
-            let sortedArr = Object.keys(aggregates).map(k => ({ label: k, area: aggregates[k] }));
-            sortedArr.sort((a, b) => b.area - a.area);
-            
-            let top4Labels = [];
-            if (isVariedade && sortedArr.length > 5) {
-                const top4 = sortedArr.slice(0, 4);
-                top4Labels = top4.map(i => i.label);
-                const rest = sortedArr.slice(4);
-                let outrasArea = 0;
-                rest.forEach(item => outrasArea += item.area);
-                top4.push({ label: 'Outras', area: outrasArea });
-                sortedArr = top4;
-            } else {
-                top4Labels = sortedArr.map(i => i.label);
-            }
-
-            if (sortedArr.length === 0) throw new Error("No data aggregated");
-
-            // Store top4Labels globally for the highlight logic
-            window.currentChartTopLabels = top4Labels;
-
-            // Find maximum area to calculate percentage width of bars
-            let maxArea = 0;
-            sortedArr.forEach(item => { if(item.area > maxArea) maxArea = item.area; });
-
-            // Generate HTML for the bars
-            let chartHTML = '';
-            sortedArr.forEach(item => {
-                const label = item.label;
-                const area = item.area;
-                const pct = maxArea > 0 ? (area / maxArea) * 100 : 0;
-                const color = isVariedade && label !== 'Outras' ? getVarietyColor(label) : (label === 'Outras' ? '#888' : `hsl(${Math.floor(Math.random() * 360)}, 70%, 60%)`);
-                
-                chartHTML += `
-                    <div class="inline-chart-row" data-category="${label}" data-layer="${layerKey}" data-chart-color="${color}" title="Clique para selecionar no mapa">
-                        <div class="inline-chart-label">${label}</div>
-                        <div class="inline-chart-bar-container">
-                            <div class="inline-chart-bar-bg">
-                                <div class="inline-chart-bar-fill" style="width: ${pct}%; background-color: ${color};"></div>
-                            </div>
-                            <div class="inline-chart-value">${area.toFixed(2)} ha</div>
-                        </div>
-                    </div>
-                `;
-            });
-            
-            // Add total sum at the bottom
-            chartHTML += `
-                <div class="inline-chart-total">
-                    TOTAL: ${totalArea.toFixed(2)} ha
-                </div>
-            `;
-            
-            container.innerHTML = chartHTML;
-            container.style.display = 'block';
-
-        } catch (err) {
-            btn.innerHTML = 'Erro: ' + err.message;
-            btn.style.color = '#ff4d4d';
-            btn.style.borderColor = '#ff4d4d';
-        }
-    });
-
-    // Handle map selection from chart bars
-    let currentSelectedCategory = null;
-    let currentSelectedLayerKey = null;
-
+    // Handle map selection
     window.clearAllSelections = () => {
-        if (currentSelectedLayerKey && loadedLayers[currentSelectedLayerKey]) {
-            loadedLayers[currentSelectedLayerKey].eachLayer(layer => {
-                loadedLayers[currentSelectedLayerKey].resetStyle(layer);
-            });
-            currentSelectedCategory = null;
-            currentSelectedLayerKey = null;
-        }
-        
         if (window.currentSearchedFarmLayer && window.currentSearchedFarmLayerGroup) {
             window.currentSearchedFarmLayerGroup.resetStyle(window.currentSearchedFarmLayer);
             window.currentSearchedFarmLayer = null;
@@ -863,86 +746,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Clear selection on map click
     map.on('click', window.clearAllSelections);
 
-    document.addEventListener('click', (e) => {
-        const row = e.target.closest('.inline-chart-row');
-        if (!row) return;
 
-        const category = row.getAttribute('data-category');
-        const layerKey = row.getAttribute('data-layer');
-        const barColor = row.getAttribute('data-chart-color') || '#ffeb3b';
-        const layerGroup = loadedLayers[layerKey];
-        if (!layerGroup) return;
-
-        // Reset previous styles
-        if (currentSelectedLayerKey && loadedLayers[currentSelectedLayerKey]) {
-            loadedLayers[currentSelectedLayerKey].eachLayer(layer => {
-                loadedLayers[currentSelectedLayerKey].resetStyle(layer);
-            });
-        }
-
-        // If clicking the same category, it's a toggle off
-        if (currentSelectedCategory === category && currentSelectedLayerKey === layerKey) {
-            currentSelectedCategory = null;
-            currentSelectedLayerKey = null;
-            return;
-        }
-
-        currentSelectedCategory = category;
-        currentSelectedLayerKey = layerKey;
-        
-        const isVariedade = layerKey.toUpperCase().includes('VARIEDADE');
-        
-        const bounds = L.latLngBounds();
-        let hasMatches = false;
-
-        layerGroup.eachLayer(layer => {
-            const props = layer.feature.properties || {};
-            let tipo = props['DL TIPOCONTRA'] || props.TIPOCONTRA || 'NÃO DEFINIDO';
-            if (isVariedade) {
-                tipo = props['DL VARIEDADE'] || props.VARIEDADE || props.variedade || 'NÃO DEFINIDO';
-            }
-            
-            let isMatch = (tipo === category);
-            if (category === 'Outras') {
-                isMatch = !window.currentChartTopLabels.includes(tipo);
-            }
-            
-            if (isMatch) {
-                // Highlight
-                layer.setStyle({
-                    weight: 3,
-                    color: barColor,
-                    fillOpacity: 0.8
-                });
-                if (layer.bringToFront) {
-                    layer.bringToFront();
-                }
-                
-                if (layer.getBounds) {
-                    bounds.extend(layer.getBounds());
-                    hasMatches = true;
-                }
-            } else {
-                // Dim non-matching
-                layer.setStyle({
-                    fillOpacity: 0.1,
-                    weight: 1,
-                    color: '#555'
-                });
-            }
-        });
-
-        if (hasMatches && bounds.isValid()) {
-            const rightPadding = window.innerWidth > 768 ? 450 : 50; // Account for right sidebar on PC
-            const bottomPadding = window.innerWidth <= 768 ? 300 : 50; // Account for bottom tools on mobile
-            
-            map.flyToBounds(bounds, { 
-                paddingBottomRight: [rightPadding, bottomPadding],
-                paddingTopLeft: [50, 50],
-                duration: 1.5 
-            });
-        }
-    });
 
     // --- MEASUREMENT TOOL LOGIC ---
     let measureActive = false;
