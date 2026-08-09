@@ -412,17 +412,28 @@
                         <div style="font-size: 11px; color: rgba(255,255,255,0.5);">Esta ação analisará iterativamente todas as fazendas carregadas no mapa.</div>
                     </div>
 
-                    <button id="btn-weed-analyze-general" onclick="runGlobalAnalysis()" style="
-                        width: 100%; padding: 13px; border-radius: 10px;
-                        background: linear-gradient(135deg, #c62828, #ff1744);
-                        border: none; color: #fff; font-size: 13px; font-weight: 700;
-                        cursor: pointer; display: flex; align-items: center;
-                        justify-content: center; gap: 8px; transition: all 0.2s;
-                        box-shadow: 0 4px 12px rgba(255,23,68,0.3);
-                    ">
-                        <span id="weed-btn-icon-general">🌎</span>
-                        <span id="weed-btn-text-general">Iniciar Análise Global</span>
-                    </button>
+                    <div style="display: flex; gap: 8px;">
+                        <button id="btn-weed-analyze-general" onclick="runGlobalAnalysis()" style="
+                            flex: 2; padding: 13px; border-radius: 10px;
+                            background: linear-gradient(135deg, #c62828, #ff1744);
+                            border: none; color: #fff; font-size: 13px; font-weight: 700;
+                            cursor: pointer; display: flex; align-items: center;
+                            justify-content: center; gap: 8px; transition: all 0.2s;
+                            box-shadow: 0 4px 12px rgba(255,23,68,0.3);
+                        ">
+                            <span id="weed-btn-icon-general">🌎</span>
+                            <span id="weed-btn-text-general">Iniciar Análise Global</span>
+                        </button>
+                        
+                        <button id="btn-weed-cancel-general" onclick="cancelGlobalAnalysis()" style="
+                            display: none; flex: 1; padding: 13px; border-radius: 10px;
+                            background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
+                            color: rgba(255,255,255,0.7); font-size: 13px; font-weight: 600;
+                            cursor: pointer; align-items: center; justify-content: center; transition: all 0.2s;
+                        ">
+                            🛑 Cancelar
+                        </button>
+                    </div>
 
                     <!-- Progresso Geral -->
                     <div id="weed-general-status-area" style="display: none; margin-top: 14px; background: rgba(255,255,255,0.03); border-radius: 10px; padding: 12px;">

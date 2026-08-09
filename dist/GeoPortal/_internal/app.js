@@ -875,9 +875,19 @@ loadedLayers[type.toUpperCase()] = myLayers[type];
         // ── Análise Global (Todas as Fazendas) ───────────────────────────
         let globalAnalysisResults = { type: 'FeatureCollection', features: [] };
         let isGlobalAnalysisRunning = false;
+        let cancelGlobalAnalysisFlag = false;
+
+        window.cancelGlobalAnalysis = function() {
+            if (isGlobalAnalysisRunning) {
+                cancelGlobalAnalysisFlag = true;
+                const btnCancel = document.getElementById('btn-weed-cancel-general');
+                if (btnCancel) btnCancel.innerText = 'Cancelando...';
+            }
+        };
 
         window.runGlobalAnalysis = async function() {
             if (isGlobalAnalysisRunning) return;
+            cancelGlobalAnalysisFlag = false;
             
             // Coletar todos os IDs de fazendas únicas que estão carregadas no mapa
             const seenFarms = new Set();
@@ -914,9 +924,11 @@ loadedLayers[type.toUpperCase()] = myLayers[type];
 
             // Setup UI
             isGlobalAnalysisRunning = true;
+            cancelGlobalAnalysisFlag = false;
             globalAnalysisResults = { type: 'FeatureCollection', features: [] };
             
             const btn = document.getElementById('btn-weed-analyze-general');
+            const btnCancel = document.getElementById('btn-weed-cancel-general');
             const icon = document.getElementById('weed-btn-icon-general');
             const text = document.getElementById('weed-btn-text-general');
             const statusArea = document.getElementById('weed-general-status-area');
@@ -926,7 +938,8 @@ loadedLayers[type.toUpperCase()] = myLayers[type];
             const resultArea = document.getElementById('weed-general-result-area');
             const resultMsg = document.getElementById('weed-general-result-msg');
 
-            if(btn) btn.disabled = true;
+            if(btn) { btn.disabled = true; btn.style.opacity = '0.5'; }
+            if(btnCancel) { btnCancel.style.display = 'flex'; btnCancel.innerText = '🛑 Cancelar'; }
             if(icon) icon.innerHTML = '<div style="width:14px;height:14px;border:2px solid #fff;border-top-color:transparent;border-radius:50%;animation:spin 1s linear infinite;"></div>';
             if(text) text.innerText = 'Análise em Andamento...';
             if(statusArea) statusArea.style.display = 'block';
@@ -949,6 +962,11 @@ loadedLayers[type.toUpperCase()] = myLayers[type];
             };
 
             for (let i = 0; i < totalFarms; i++) {
+                if (cancelGlobalAnalysisFlag) {
+                    addLog('🛑 ANÁLISE CANCELADA PELO USUÁRIO', '#ff9f1c');
+                    break;
+                }
+                
                 const farm = farmsList[i];
                 
                 // Atualizar progresso
@@ -1024,7 +1042,8 @@ loadedLayers[type.toUpperCase()] = myLayers[type];
 
             // Finalizou o loop
             if(progressBar) progressBar.style.width = '100%';
-            if(btn) btn.disabled = false;
+            if(btn) { btn.disabled = false; btn.style.opacity = '1'; }
+            if(btnCancel) { btnCancel.style.display = 'none'; }
             if(icon) icon.innerHTML = '🌎';
             if(text) text.innerText = 'Iniciar Análise Global';
 
@@ -1036,8 +1055,9 @@ loadedLayers[type.toUpperCase()] = myLayers[type];
             // Exibir resumo
             if(resultArea) resultArea.style.display = 'block';
             if(resultMsg) {
+                const cancelText = cancelGlobalAnalysisFlag ? '<span style="color:#ff9f1c;">(Cancelado)</span>' : '';
                 resultMsg.innerHTML = `
-                    Processamos <strong>${totalFarms} fazendas</strong>.<br>
+                    Processamos <strong>${successCount + failCount} de ${totalFarms} fazendas</strong>. ${cancelText}<br>
                     Sucessos: <strong>${successCount}</strong> | Falhas: <strong>${failCount}</strong><br>
                     <div style="margin-top: 8px; padding: 10px; background: rgba(255,23,68,0.1); border: 1px solid rgba(255,23,68,0.3); border-radius: 8px;">
                         Total Infestado Global: <strong style="color: #ff1744; font-size: 14px;">${totalHa.toFixed(2)} ha</strong><br>
