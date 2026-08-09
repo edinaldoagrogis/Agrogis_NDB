@@ -22,9 +22,11 @@ class Api:
             
             try:
                 self.server_process = subprocess.Popen(
-                    [sys.executable, backend_script],
+                    ["python", backend_script],
                     cwd=os.path.join(base_path, "backend"),
-                    creationflags=CREATE_NO_WINDOW
+                    creationflags=CREATE_NO_WINDOW,
+                    stdout=subprocess.DEVNULL,
+                    stderr=subprocess.DEVNULL
                 )
                 print(f"[Desktop App] Servidor iniciado (PID: {self.server_process.pid})")
                 return {"status": "success", "message": "Servidor iniciado"}
