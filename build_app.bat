@@ -29,6 +29,8 @@ pyinstaller --name "GeoPortal" -y ^
     --hidden-import shapely ^
     --hidden-import numpy ^
     --hidden-import requests ^
+    --collect-all rasterio ^
+    --collect-all pyproj ^
     desktop_app.py
 
 echo.

@@ -652,7 +652,6 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         }
 
-        }
         // Fit map bounds to all loaded layers (Disabled)
     } else {
         // Try again in 200ms
