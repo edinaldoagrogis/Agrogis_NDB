@@ -312,9 +312,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
-    if (typeof GEOPORTAL_LAYERS !== 'undefined') {
-        
-        // --- PROCESS EQUIPES VIA LOCALSTORAGE REMOVIDO ---
+    function tryInitLayers() {
+        if (typeof GEOPORTAL_LAYERS !== 'undefined') {
+            
+            // --- PROCESS EQUIPES VIA LOCALSTORAGE REMOVIDO ---
         
         for (const layerName in GEOPORTAL_LAYERS) {
             // Ignorar completamente camadas de Grade de Coordenadas que vieram exportadas no GeoJSON
@@ -651,22 +652,14 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         }
 
-        // Fit map bounds to all loaded layers
-        // (Desabilitado a pedido do usuário para iniciar em uma posição macro fixa)
-        /*
-        if (loadedLayers['FAZENDAS']) {
-            const bounds = loadedLayers['FAZENDAS'].getBounds();
-            if (bounds.isValid()) {
-                map.fitBounds(bounds, { padding: [30, 30] });
-            }
-        } else if (globalBounds.isValid()) {
-            map.fitBounds(globalBounds, { padding: [50, 50] });
         }
-        */
+        // Fit map bounds to all loaded layers (Disabled)
     } else {
-        console.warn("GEOPORTAL_LAYERS data not found. Please run INICIAR_GEOPORTAL.bat");
-        dynamicLayerList.innerHTML = '<li style="color:#e71d36; font-size:12px;">Por favor, execute o arquivo INICIAR_GEOPORTAL.bat</li>';
+        // Try again in 200ms
+        setTimeout(tryInitLayers, 200);
     }
+}
+tryInitLayers();
 
     // --- CUSTOM LAYERS LOGIC ---
     let myLayers = {
