@@ -1,12 +1,21 @@
 # -*- mode: python ; coding: utf-8 -*-
+from PyInstaller.utils.hooks import collect_all
+
+datas = [('index.html', '.'), ('style.css', '.'), ('*.js', '.'), ('*.jpg', '.'), ('*.png', '.'), ('*.geojson', '.')]
+binaries = []
+hiddenimports = ['uvicorn', 'fastapi', 'pydantic', 'shapely', 'numpy', 'requests']
+tmp_ret = collect_all('rasterio')
+datas += tmp_ret[0]; binaries += tmp_ret[1]; hiddenimports += tmp_ret[2]
+tmp_ret = collect_all('pyproj')
+datas += tmp_ret[0]; binaries += tmp_ret[1]; hiddenimports += tmp_ret[2]
 
 
 a = Analysis(
     ['desktop_app.py'],
     pathex=[],
-    binaries=[],
-    datas=[('index.html', '.'), ('style.css', '.'), ('*.js', '.'), ('*.jpg', '.'), ('*.png', '.'), ('*.geojson', '.')],
-    hiddenimports=['uvicorn', 'fastapi', 'pydantic', 'shapely', 'numpy', 'requests'],
+    binaries=binaries,
+    datas=datas,
+    hiddenimports=hiddenimports,
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],

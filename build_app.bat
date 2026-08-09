@@ -27,8 +27,11 @@ pyinstaller --name "GeoPortal" -y ^
     --hidden-import fastapi ^
     --hidden-import pydantic ^
     --hidden-import shapely ^
-    --hidden-import numpy ^
     --hidden-import requests ^
+    --hidden-import rasterio.serde ^
+    --hidden-import rasterio.sample ^
+    --hidden-import rasterio.vrt ^
+    --hidden-import rasterio._env ^
     --collect-all rasterio ^
     --collect-all pyproj ^
     desktop_app.py
