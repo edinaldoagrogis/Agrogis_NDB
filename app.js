@@ -2142,20 +2142,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // ── Abre o painel ao clicar no talhão ────────────────────────────
     window.openWeedAnalysisPanel = function(feature, props) {
-        const fazId   = props.FAZENDA || props['DL FUNDOAGRIC'] || '';
+        const codTal  = props.COD_TALHAO || props.TALHAO || '';
         const nomeFaz = props.NOME_FAZ || props['DL DESCFUNDOA'] || 'Fazenda';
+        const fazId   = props.FAZENDA || props['DL FUNDOAGRIC'] || '';
 
-        // Coletar todos os talhões da mesma fazenda pelo ID limpo
-        selectedFazendaFeatures = getFazendaFeatures(fazId);
-        if (selectedFazendaFeatures.length === 0) selectedFazendaFeatures = [feature];
+        // Quando clica no mapa, analisa APENAS o talhão clicado
+        selectedFazendaFeatures = [feature];
         selectedFazendaName = nomeFaz;
 
         // Atualizar UI
-        if (talhaoName) talhaoName.textContent = nomeFaz;
-        if (talhaoInfo) talhaoInfo.textContent = `Fazenda ID: ${fazId} · ${selectedFazendaFeatures.length} talhão(ões)`;
+        if (talhaoName) talhaoName.textContent = `Talhão ${codTal} — ${nomeFaz}`;
+        if (talhaoInfo) talhaoInfo.textContent = `Fazenda ID: ${fazId} · Apenas este talhão`;
         if (fazendaBadge) {
             fazendaBadge.style.display = 'inline-flex';
-            if (fazCountEl) fazCountEl.textContent = selectedFazendaFeatures.length;
+            if (fazCountEl) fazCountEl.textContent = '1';
         }
 
         resetPanel();
