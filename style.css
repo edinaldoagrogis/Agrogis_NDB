@@ -982,6 +982,11 @@ body.disable-map-hover .leaflet-interactive {
     .slim-toolbar {
         display: none !important;
     }
+    
+    #tool-weed-btn,
+    #weed-analysis-panel {
+        display: none !important;
+    }
 
     .drawer-panel {
         position: absolute;
