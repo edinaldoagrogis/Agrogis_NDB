@@ -120,6 +120,7 @@ document.addEventListener('DOMContentLoaded', () => {
             alert('Erro no login: ' + e.message + '\n' + e.stack);
         }
     }
+    window.performLogin = performLogin;
 
     function grantAccess(level) {
         try {

@@ -43,19 +43,11 @@
             
             if (window.location.protocol === 'file:') {
                 // Desktop App: Tenta nuvem primeiro. Se falhar, cai pro local.
-                var s = document.createElement('script');
-                s.src = remoteSrc + '?t=' + new Date().getTime();
-                s.onerror = function() {
-                    var sLocal = document.createElement('script');
-                    sLocal.src = localSrc;
-                    document.head.appendChild(sLocal);
-                };
-                document.head.appendChild(s);
+                document.write('<script src="' + remoteSrc + '?t=' + new Date().getTime() + '"><\\/script>');
+                document.write('<script>if (typeof GEOPORTAL_LAYERS === "undefined") document.write("<script src=\'' + localSrc + '\'><\\\\/script>");<\\/script>');
             } else {
                 // PWA/Website: Já está na nuvem
-                var s = document.createElement('script');
-                s.src = localSrc;
-                document.head.appendChild(s);
+                document.write('<script src="' + localSrc + '"><\\/script>');
             }
         })();
     </script>

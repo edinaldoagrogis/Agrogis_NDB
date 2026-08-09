@@ -42,12 +42,20 @@
             var remoteSrc = 'https://edinaldoagrogis.github.io/Agrogis_NDB/layers_data.js';
             
             if (window.location.protocol === 'file:') {
-                // Desktop App: Tenta nuvem primeiro. Se falhar (sem internet ou bloqueado), cai pro local.
-                var src = remoteSrc + '?t=' + new Date().getTime();
-                document.write('<script src="' + src + '" onerror="this.src=\'' + localSrc + '\'"><\\/script>');
+                // Desktop App: Tenta nuvem primeiro. Se falhar, cai pro local.
+                var s = document.createElement('script');
+                s.src = remoteSrc + '?t=' + new Date().getTime();
+                s.onerror = function() {
+                    var sLocal = document.createElement('script');
+                    sLocal.src = localSrc;
+                    document.head.appendChild(sLocal);
+                };
+                document.head.appendChild(s);
             } else {
                 // PWA/Website: Já está na nuvem
-                document.write('<script src="' + localSrc + '"><\\/script>');
+                var s = document.createElement('script');
+                s.src = localSrc;
+                document.head.appendChild(s);
             }
         })();
     </script>
@@ -79,7 +87,7 @@
                 
                 <div id="login-error" style="color: #ff4d4d; font-size: 12px; margin-bottom: 15px; display: none;">Credenciais inválidas!</div>
                 
-                <button type="submit" id="btn-login" style="width: 100%; padding: 12px; border-radius: 6px; background: linear-gradient(90deg, #e85d04, #f48c06); color: #fff; font-weight: bold; border: none; cursor: pointer; text-transform: uppercase; letter-spacing: 1px; transition: transform 0.2s, box-shadow 0.2s;">Entrar</button>
+                <button type="button" onclick="if(window.performLogin) window.performLogin();" id="btn-login" style="width: 100%; padding: 12px; border-radius: 6px; background: linear-gradient(90deg, #e85d04, #f48c06); color: #fff; font-weight: bold; border: none; cursor: pointer; text-transform: uppercase; letter-spacing: 1px; transition: transform 0.2s, box-shadow 0.2s;">Entrar</button>
             </form>
             <button id="btn-install" style="width: 100%; padding: 12px; margin-top: 15px; border-radius: 6px; background: transparent; color: #e85d04; border: 1px solid #e85d04; cursor: pointer; text-transform: uppercase; font-weight: bold; display: none;">📥 Instalar no Celular</button>
         </div>
