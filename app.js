@@ -1386,9 +1386,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // GPS is auto-activated above now
 
+    let isPopupActive = false;
+    map.on('popupopen', () => { isPopupActive = true; });
+    map.on('popupclose', () => { 
+        setTimeout(() => { isPopupActive = false; }, 100); 
+    });
+
     // Toggle UI visibility on map click
     map.on('click', function() {
         if (window.drawActive || window.measureActive) return; // Prevent hiding UI when drawing/measuring
+        if (isPopupActive) return; // Não oculta a UI se o clique for para limpar a seleção/fechar a tabela de atributo
         document.body.classList.toggle('ui-hidden');
     });
 
