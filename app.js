@@ -464,8 +464,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             });
 
-            // Add to map by default only if it's Fazenda, Talhao or Equipe
-            const isDefaultActive = isFazenda || isTalhao || isEquipe;
+            // Add to map by default only if it's Fazenda or Talhao
+            const isDefaultActive = isFazenda || isTalhao;
             if (isDefaultActive) {
                 mapLayer.addTo(map);
             }
@@ -478,12 +478,6 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             // Create UI Checkbox
-            // Se for Equipe, nós NÃO criamos a aba de checkbox nas Camadas Operacionais, 
-            // pois elas já são gerenciadas pela seção 'Programação de Serviço'.
-            if (isEquipe) {
-                continue;
-            }
-
             const safeId = layerName.replace(/[^a-zA-Z0-9]/g, '-').toLowerCase();
             const checkedAttr = isDefaultActive ? 'checked' : '';
             
