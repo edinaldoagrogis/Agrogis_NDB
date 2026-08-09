@@ -673,11 +673,6 @@ document.addEventListener('DOMContentLoaded', () => {
             map.fitBounds(globalBounds, { padding: [50, 50] });
         }
         */
-        
-        updateLabelVisibility(); // Call initial check after layers are loaded
-        
-        // Inicializar Minhas Camadas
-        initCustomLayers();
     } else {
         console.warn("GEOPORTAL_LAYERS data not found. Please run INICIAR_GEOPORTAL.bat");
         dynamicLayerList.innerHTML = '<li style="color:#e71d36; font-size:12px;">Por favor, execute o arquivo INICIAR_GEOPORTAL.bat</li>';
@@ -843,6 +838,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 </label>
             </div>
         `;
+    }
+
+    // Inicializar Minhas Camadas
+    if (typeof GEOPORTAL_LAYERS !== 'undefined') {
+        initCustomLayers();
+        updateLabelVisibility(); // Call initial check after layers are loaded
     }
 
     // Search functionality - Locate Fazenda
