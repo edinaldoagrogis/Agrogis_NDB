@@ -1250,6 +1250,18 @@ loadedLayers[type.toUpperCase()] = myLayers[type];
 
     // Search functionality - Locate Fazenda
     const searchInput = document.getElementById('layer-search');
+    const searchIcon = document.querySelector('.search-container.floating .search-icon');
+    if (searchIcon && searchInput) {
+        searchIcon.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            if (document.activeElement === searchInput) {
+                searchInput.blur();
+            } else {
+                searchInput.focus();
+            }
+        });
+    }
     searchInput.addEventListener('input', (e) => {
         const query = e.target.value.toLowerCase().trim();
         if (!query) return;
