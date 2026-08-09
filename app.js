@@ -22,19 +22,22 @@ document.addEventListener('DOMContentLoaded', () => {
         },
         onAdd: function (map) {
             const container = L.DomUtil.create('div', 'leaflet-bar leaflet-control leaflet-control-custom-locate');
-            container.style.backgroundColor = 'var(--bg-secondary)';
-            container.style.backdropFilter = 'blur(12px)';
-            container.style.width = '30px';
-            container.style.height = '30px';
+            container.style.backgroundColor = '#ffffff';
+            container.style.border = 'none';
+            container.style.borderRadius = '50%';
+            container.style.boxShadow = '0 4px 10px rgba(0,0,0,0.2)';
+            container.style.width = '44px';
+            container.style.height = '44px';
             container.style.cursor = 'pointer';
             container.style.display = 'flex';
             container.style.justifyContent = 'center';
             container.style.alignItems = 'center';
             container.style.marginTop = '10px';
+            container.style.marginRight = '10px';
             container.title = 'Minha Localização';
 
             const icon = L.DomUtil.create('span', '', container);
-            icon.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--text-main);"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="3"></circle></svg>`;
+            icon.innerHTML = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#333333" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="3 11 22 2 13 21 11 13 3 11"></polygon></svg>`;
 
             container.onclick = function(e){
                 L.DomEvent.stopPropagation(e);
@@ -50,8 +53,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }
             
-            container.onmouseover = function() { container.style.backgroundColor = 'rgba(255, 255, 255, 0.1)'; };
-            container.onmouseout = function() { container.style.backgroundColor = 'var(--bg-secondary)'; };
+            container.onmouseover = function() { container.style.backgroundColor = '#f5f5f5'; };
+            container.onmouseout = function() { container.style.backgroundColor = '#ffffff'; };
 
             return container;
         }
