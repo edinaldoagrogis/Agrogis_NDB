@@ -104,33 +104,24 @@ document.addEventListener('DOMContentLoaded', () => {
             
             if (talhoesEnabled && zoom >= TALHOES_ZOOM_THRESHOLD) {
                 const bounds = map.getBounds().pad(0.1); // smaller pad for faster checks
-                let visibleCount = 0;
-                const maxLabels = isMobile ? 50 : 300; // FPS LIMITER - PREVENTS LAG
-                
                 for (const item of layerLabels.TALHOES) {
                     const isVisible = bounds.contains(item.latlng);
                     const hasLayer = item.marker && activeLabelGroups.TALHOES.hasLayer(item.marker);
                     
                     if (isVisible) {
-                        if (visibleCount < maxLabels) {
-                            if (!item.marker) {
-                                // Lazy instantiate marker only when it first enters viewport
-                                item.marker = L.marker(item.latlng, {
-                                    icon: L.divIcon({
-                                        className: 'custom-talhao-label-container',
-                                        html: item.html,
-                                        iconSize: [60, 40],
-                                        iconAnchor: [30, 20]
-                                    }),
-                                    interactive: false
-                                });
-                            }
-                            if (!hasLayer) activeLabelGroups.TALHOES.addLayer(item.marker);
-                            visibleCount++;
-                        } else {
-                            // If we exceed the cap, remove it to save RAM
-                            if (hasLayer) activeLabelGroups.TALHOES.removeLayer(item.marker);
+                        if (!item.marker) {
+                            // Lazy instantiate marker only when it first enters viewport
+                            item.marker = L.marker(item.latlng, {
+                                icon: L.divIcon({
+                                    className: 'custom-talhao-label-container',
+                                    html: item.html,
+                                    iconSize: [60, 40],
+                                    iconAnchor: [30, 20]
+                                }),
+                                interactive: false
+                            });
                         }
+                        if (!hasLayer) activeLabelGroups.TALHOES.addLayer(item.marker);
                     } else if (!isVisible && hasLayer) {
                         activeLabelGroups.TALHOES.removeLayer(item.marker);
                     }
@@ -153,7 +144,7 @@ document.addEventListener('DOMContentLoaded', () => {
         };
     }
     
-    const debouncedUpdateLabelVisibility = debounce(updateLabelVisibility, 350);
+    const debouncedUpdateLabelVisibility = debounce(updateLabelVisibility, 50);
 
     map.on('zoomend', debouncedUpdateLabelVisibility);
     map.on('moveend', debouncedUpdateLabelVisibility);
