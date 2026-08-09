@@ -652,7 +652,9 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         }
 
-        // Fit map bounds to all loaded layers (Disabled)
+        // Initialize Custom Layers after map layers are ready
+        initCustomLayers();
+        updateLabelVisibility(); // Call initial check after layers are loaded
     } else {
         // Try again in 200ms
         setTimeout(tryInitLayers, 200);
@@ -868,22 +870,18 @@ loadedLayers[type.toUpperCase()] = myLayers[type];
         }
     }
 
-    function initCustomLayers() {
-        window.applyCustomPassword = applyCustomPassword;
-        window.clearCustomPasswords = clearCustomPasswords;
+    // ── Análise Global (Todas as Fazendas) ───────────────────────────
+    let globalAnalysisResults = { type: 'FeatureCollection', features: [] };
+    let isGlobalAnalysisRunning = false;
+    let cancelGlobalAnalysisFlag = false;
 
-        // ── Análise Global (Todas as Fazendas) ───────────────────────────
-        let globalAnalysisResults = { type: 'FeatureCollection', features: [] };
-        let isGlobalAnalysisRunning = false;
-        let cancelGlobalAnalysisFlag = false;
-
-        window.cancelGlobalAnalysis = function() {
-            if (isGlobalAnalysisRunning) {
-                cancelGlobalAnalysisFlag = true;
-                const btnCancel = document.getElementById('btn-weed-cancel-general');
-                if (btnCancel) btnCancel.innerText = 'Cancelando...';
-            }
-        };
+    window.cancelGlobalAnalysis = function() {
+        if (isGlobalAnalysisRunning) {
+            cancelGlobalAnalysisFlag = true;
+            const btnCancel = document.getElementById('btn-weed-cancel-general');
+            if (btnCancel) btnCancel.innerText = 'Cancelando...';
+        }
+    };
 
         window.runGlobalAnalysis = async function() {
             if (isGlobalAnalysisRunning) return;
@@ -1081,6 +1079,10 @@ loadedLayers[type.toUpperCase()] = myLayers[type];
             dlAnchorElem.click();
         };
 
+    function initCustomLayers() {
+        window.applyCustomPassword = applyCustomPassword;
+        window.clearCustomPasswords = clearCustomPasswords;
+        
         loadCustomLayer('pontos');
         loadCustomLayer('areas');
         loadCustomLayer('rotas');
@@ -1243,11 +1245,8 @@ loadedLayers[type.toUpperCase()] = myLayers[type];
         `;
     }
 
-    // Inicializar Minhas Camadas
-    if (typeof GEOPORTAL_LAYERS !== 'undefined') {
-        initCustomLayers();
-        updateLabelVisibility(); // Call initial check after layers are loaded
-    }
+    // ── Remover Inicialização Antiga ──
+    // Foi movida para dentro do tryInitLayers() para rodar após carregar as fazendas.
 
     // Search functionality - Locate Fazenda
     const searchInput = document.getElementById('layer-search');
