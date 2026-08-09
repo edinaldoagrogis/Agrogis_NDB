@@ -676,11 +676,93 @@ document.addEventListener('DOMContentLoaded', () => {
         if (existing) {
             try { featureCollection = JSON.parse(existing); } catch(e){}
         }
+        
+        if (!geoJsonFeature.properties.id) {
+            geoJsonFeature.properties.id = Date.now().toString() + Math.random().toString(36).substr(2, 5);
+        }
+        
         featureCollection.features.push(geoJsonFeature);
         localStorage.setItem(key, JSON.stringify(featureCollection));
         
         // Reload layer
         loadCustomLayer(type, featureCollection);
+        renderCustomFeaturesList(type);
+    }
+
+    function deleteCustomFeature(type, id) {
+        if (!confirm('Deseja realmente excluir este item?')) return;
+        const key = `agrogis_custom_${type}`;
+        let existing = localStorage.getItem(key);
+        if (existing) {
+            try { 
+                let fc = JSON.parse(existing);
+                fc.features = fc.features.filter(f => f.properties.id !== id);
+                localStorage.setItem(key, JSON.stringify(fc));
+                loadCustomLayer(type, fc);
+                renderCustomFeaturesList(type);
+            } catch(e){}
+        }
+    }
+
+    function editCustomFeatureName(type, id, oldName) {
+        openNameModal(oldName || '', (newName) => {
+            if (!newName) return;
+            const key = `agrogis_custom_${type}`;
+            let existing = localStorage.getItem(key);
+            if (existing) {
+                try { 
+                    let fc = JSON.parse(existing);
+                    let feat = fc.features.find(f => f.properties.id === id);
+                    if (feat) {
+                        feat.properties.NOME = newName;
+                        localStorage.setItem(key, JSON.stringify(fc));
+                        loadCustomLayer(type, fc);
+                        renderCustomFeaturesList(type);
+                    }
+                } catch(e){}
+            }
+        });
+    }
+
+    // Context Menu Global para Editar/Excluir
+    let activeContextMenu = null;
+    function showContextMenu(type, id, name, latlng) {
+        if (activeContextMenu) {
+            map.removeLayer(activeContextMenu);
+        }
+        
+        const content = document.createElement('div');
+        content.className = 'custom-context-menu';
+        content.innerHTML = `
+            <div style="font-weight: bold; margin-bottom: 8px; color: #fff; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 4px; font-size: 13px;">${name}</div>
+            <button id="ctx-edit-btn" style="width: 100%; text-align: left; background: none; border: none; color: #2ec4b6; padding: 6px; cursor: pointer; font-size: 13px;">✏️ Editar Nome</button>
+            <button id="ctx-del-btn" style="width: 100%; text-align: left; background: none; border: none; color: #e71d36; padding: 6px; cursor: pointer; font-size: 13px; margin-top: 4px;">🗑️ Excluir</button>
+        `;
+        
+        const popup = L.popup({
+            closeButton: true,
+            minWidth: 150,
+            className: 'action-context-popup'
+        })
+        .setLatLng(latlng)
+        .setContent(content)
+        .openOn(map);
+        
+        activeContextMenu = popup;
+        
+        // Wait for DOM
+        setTimeout(() => {
+            const btnEdit = document.getElementById('ctx-edit-btn');
+            const btnDel = document.getElementById('ctx-del-btn');
+            if (btnEdit) btnEdit.addEventListener('click', () => {
+                map.closePopup(popup);
+                editCustomFeatureName(type, id, name);
+            });
+            if (btnDel) btnDel.addEventListener('click', () => {
+                map.closePopup(popup);
+                deleteCustomFeature(type, id);
+            });
+        }, 50);
     }
 
     function loadCustomLayer(type, featureCollection) {
@@ -694,6 +776,18 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
         
+        // Garantir que todos tenham ID
+        let updated = false;
+        featureCollection.features.forEach(f => {
+            if (!f.properties.id) {
+                f.properties.id = Date.now().toString() + Math.random().toString(36).substr(2, 5);
+                updated = true;
+            }
+        });
+        if (updated) {
+            localStorage.setItem(`agrogis_custom_${type}`, JSON.stringify(featureCollection));
+        }
+        
         if (myLayers[type]) {
             myLayers[type].clearLayers();
             myLayers[type].addData(featureCollection);
@@ -703,14 +797,19 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (feature.properties) {
                         const popupContent = createPopupContent(feature.properties.NOME || 'Sem Nome', feature.properties);
                         layer.bindPopup(popupContent, { className: 'custom-popup' });
-                        // Add persistent tooltip if it has a name
                         if (feature.properties.NOME) {
                             layer.bindTooltip(feature.properties.NOME, {
-                                permanent: false, // User requested popup only initially to avoid clutter
+                                permanent: false,
                                 direction: 'center',
                                 className: 'custom-label-tooltip'
                             });
                         }
+                        
+                        // Evento de pressionar/direito para abrir opções
+                        layer.on('contextmenu', (e) => {
+                            showContextMenu(type, feature.properties.id, feature.properties.NOME || 'Sem Nome', e.latlng);
+                            L.DomEvent.stopPropagation(e);
+                        });
                     }
                 }
             };
@@ -742,17 +841,14 @@ document.addEventListener('DOMContentLoaded', () => {
             
             myLayers[type] = L.geoJSON(featureCollection, options);
             loadedLayers[type.toUpperCase()] = myLayers[type];
-            // Don't add to map by default
         }
     }
 
     function initCustomLayers() {
-        // Load data from LocalStorage
         loadCustomLayer('pontos');
         loadCustomLayer('areas');
         loadCustomLayer('rotas');
         
-        // Create Sidebar Group
         const li = document.createElement('li');
         li.className = 'layer-item custom-layers-group';
         li.style.display = 'block';
@@ -782,7 +878,11 @@ document.addEventListener('DOMContentLoaded', () => {
         
         dynamicLayerList.appendChild(li);
         
-        // Accordion open/close logic
+        // Render initial lists
+        renderCustomFeaturesList('pontos');
+        renderCustomFeaturesList('areas');
+        renderCustomFeaturesList('rotas');
+        
         const mainRow = li.querySelector('.layer-main-row');
         const submenu = li.querySelector('.layer-submenu');
         const arrow = li.querySelector('.submenu-arrow');
@@ -797,7 +897,6 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
         
-        // Checkbox logic
         ['pontos', 'areas', 'rotas'].forEach(type => {
             const cb = li.querySelector(`#toggle-custom-${type}`);
             if (cb) {
@@ -809,17 +908,101 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                 });
             }
+            
+            const expandBtn = li.querySelector(`#expand-custom-${type}`);
+            if (expandBtn) {
+                expandBtn.addEventListener('click', () => {
+                    const listDiv = li.querySelector(`#list-custom-${type}`);
+                    if (listDiv.style.display === 'none') {
+                        listDiv.style.display = 'block';
+                    } else {
+                        listDiv.style.display = 'none';
+                    }
+                });
+            }
         });
+    }
+
+    function renderCustomFeaturesList(type) {
+        const listDiv = document.getElementById(`list-custom-${type}`);
+        if (!listDiv) return; // Might not exist if DOM not ready, but called later
+        
+        listDiv.innerHTML = '';
+        
+        const key = `agrogis_custom_${type}`;
+        let existing = localStorage.getItem(key);
+        if (!existing) return;
+        
+        try {
+            let fc = JSON.parse(existing);
+            if (!fc.features || fc.features.length === 0) {
+                listDiv.innerHTML = '<div style="font-style: italic; opacity: 0.5;">Nenhuma feição salva.</div>';
+                return;
+            }
+            
+            fc.features.forEach(f => {
+                const name = f.properties.NOME || 'Sem Nome';
+                const id = f.properties.id;
+                
+                const itemDiv = document.createElement('div');
+                itemDiv.style.display = 'flex';
+                itemDiv.style.justifyContent = 'space-between';
+                itemDiv.style.alignItems = 'center';
+                itemDiv.style.padding = '4px 0';
+                itemDiv.style.borderBottom = '1px solid rgba(255,255,255,0.05)';
+                
+                itemDiv.innerHTML = `
+                    <span style="flex-grow: 1; cursor: pointer; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; color: #a8b8b0;">${name}</span>
+                    <div style="display: flex; gap: 6px;">
+                        <button class="btn-edit" style="background:none; border:none; color:#2ec4b6; cursor:pointer;" title="Editar Nome">✏️</button>
+                        <button class="btn-delete" style="background:none; border:none; color:#e71d36; cursor:pointer;" title="Excluir">🗑️</button>
+                    </div>
+                `;
+                
+                // Pan to feature on name click
+                const spanName = itemDiv.querySelector('span');
+                spanName.addEventListener('click', () => {
+                    let mapLayer;
+                    myLayers[type].eachLayer(l => {
+                        if (l.feature.properties.id === id) mapLayer = l;
+                    });
+                    if (mapLayer) {
+                        if (mapLayer.getBounds) {
+                            map.fitBounds(mapLayer.getBounds());
+                        } else if (mapLayer.getLatLng) {
+                            map.panTo(mapLayer.getLatLng());
+                        }
+                        mapLayer.openPopup();
+                    }
+                });
+                
+                itemDiv.querySelector('.btn-edit').addEventListener('click', () => {
+                    editCustomFeatureName(type, id, name);
+                });
+                itemDiv.querySelector('.btn-delete').addEventListener('click', () => {
+                    deleteCustomFeature(type, id);
+                });
+                
+                listDiv.appendChild(itemDiv);
+            });
+            
+        } catch(e){}
     }
 
     function createSubLayerToggle(id, label, color) {
         return `
-            <div style="margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center;">
-                <label class="custom-checkbox" style="font-size: 12px; display: flex; align-items: center; margin: 0; width: 100%;">
-                    <input type="checkbox" id="toggle-custom-${id}">
-                    <span class="checkmark" style="--layer-color: ${color}; width: 16px; height: 16px; min-width: 16px;"></span>
-                    <span class="layer-name" style="margin-left: 10px; color: var(--text-main); font-weight: 500;">${label}</span>
-                </label>
+            <div style="margin-bottom: 10px;">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <label class="custom-checkbox" style="font-size: 12px; display: flex; align-items: center; margin: 0; min-width: 30px;">
+                        <input type="checkbox" id="toggle-custom-${id}">
+                        <span class="checkmark" style="--layer-color: ${color}; width: 16px; height: 16px; min-width: 16px;"></span>
+                    </label>
+                    <div id="expand-custom-${id}" class="layer-name" style="flex-grow: 1; margin-left: 10px; color: var(--text-main); font-weight: 500; font-size: 12px; cursor: pointer;">
+                        ${label}
+                    </div>
+                </div>
+                <div id="list-custom-${id}" style="display: none; padding-left: 26px; margin-top: 8px; font-size: 11px;">
+                </div>
             </div>
         `;
     }
