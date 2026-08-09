@@ -993,6 +993,7 @@ body.disable-map-hover .leaflet-interactive {
 
     .search-container.floating { 
         width: 44px !important; 
+        height: 44px !important;
         border-radius: 22px !important;
         background: rgba(10, 15, 13, 0.8) !important;
         transition: width 0.3s ease !important;
@@ -1008,6 +1009,12 @@ body.disable-map-hover .leaflet-interactive {
         border: none !important;
         opacity: 0;
         transition: opacity 0.3s ease;
+        width: 100% !important;
+        height: 100% !important;
+        position: absolute !important;
+        top: 0;
+        left: 0;
+        box-sizing: border-box;
     }
     .search-container.floating:focus-within #layer-search {
         opacity: 1;
@@ -1015,6 +1022,8 @@ body.disable-map-hover .leaflet-interactive {
     .search-container.floating .search-icon { 
         left: 14px !important; 
         font-size: 16px !important; 
+        pointer-events: none !important;
+        z-index: 10;
     }
 
     .basemap-selector { display: none !important; }
