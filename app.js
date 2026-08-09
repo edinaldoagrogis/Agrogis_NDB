@@ -879,8 +879,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    }
-
     // --- MEASUREMENT TOOL LOGIC ---
     let measureActive = false;
     let measureFinished = false;
