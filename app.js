@@ -107,20 +107,32 @@ document.addEventListener('DOMContentLoaded', () => {
                 let visibleCount = 0;
                 const maxLabels = isMobile ? 50 : 300; // FPS LIMITER - PREVENTS LAG
                 
-                for (const marker of layerLabels.TALHOES) {
-                    const isVisible = bounds.contains(marker.getLatLng());
-                    const hasLayer = activeLabelGroups.TALHOES.hasLayer(marker);
+                for (const item of layerLabels.TALHOES) {
+                    const isVisible = bounds.contains(item.latlng);
+                    const hasLayer = item.marker && activeLabelGroups.TALHOES.hasLayer(item.marker);
                     
                     if (isVisible) {
                         if (visibleCount < maxLabels) {
-                            if (!hasLayer) activeLabelGroups.TALHOES.addLayer(marker);
+                            if (!item.marker) {
+                                // Lazy instantiate marker only when it first enters viewport
+                                item.marker = L.marker(item.latlng, {
+                                    icon: L.divIcon({
+                                        className: 'custom-talhao-label-container',
+                                        html: item.html,
+                                        iconSize: [60, 40],
+                                        iconAnchor: [30, 20]
+                                    }),
+                                    interactive: false
+                                });
+                            }
+                            if (!hasLayer) activeLabelGroups.TALHOES.addLayer(item.marker);
                             visibleCount++;
                         } else {
                             // If we exceed the cap, remove it to save RAM
-                            if (hasLayer) activeLabelGroups.TALHOES.removeLayer(marker);
+                            if (hasLayer) activeLabelGroups.TALHOES.removeLayer(item.marker);
                         }
                     } else if (!isVisible && hasLayer) {
-                        activeLabelGroups.TALHOES.removeLayer(marker);
+                        activeLabelGroups.TALHOES.removeLayer(item.marker);
                     }
                 }
             } else {
@@ -389,7 +401,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // Create Map Layer
             const mapLayer = L.geoJSON(data, {
-                smoothFactor: 0, // Disabled simplification to fix geometry distortion
+                smoothFactor: 0.5, // Balance geometry precision with Canvas rendering constraints
 
                 style: styleFunc,
                 pointToLayer: function (feature, latlng) {
@@ -453,11 +465,15 @@ document.addEventListener('DOMContentLoaded', () => {
                     const title = props.nome || props.NOME || props.Name || props.talhao || props.TALHAO || props.id || props.designacao || 'Elemento';
                     // Popup is now bound dynamically on click so it doesn't interfere with routing clicks
                     if (isFazenda) {
-                        layer.bindTooltip(title, {
-                            permanent: true,
-                            direction: 'center',
-                            className: 'fazenda-transparent-label'
-                        });
+                        if (!window.labeledFazendas) window.labeledFazendas = new Set();
+                        if (!window.labeledFazendas.has(title)) {
+                            layer.bindTooltip(title, {
+                                permanent: true,
+                                direction: 'center',
+                                className: 'fazenda-transparent-label'
+                            });
+                            window.labeledFazendas.add(title);
+                        }
 
                         // Populate datalist for search
                         const dataList = document.getElementById('fazendas-list');
@@ -481,17 +497,12 @@ document.addEventListener('DOMContentLoaded', () => {
                                     <div class="tc-var">${varName}</div>
                                 </div>
                             `;
-                            // Only create the marker in memory, don't add to map here to avoid DOM freezing
-                            const marker = L.marker(layer.getBounds().getCenter(), {
-                                icon: L.divIcon({
-                                    className: 'custom-talhao-label-container',
-                                    html: html,
-                                    iconSize: [60, 40],
-                                    iconAnchor: [30, 20]
-                                }),
-                                interactive: false // Labels shouldn't block map interactions
+                            // Store data but DEFER L.marker instantiation to massively speed up init
+                            layerLabels.TALHOES.push({
+                                latlng: layer.getBounds().getCenter(),
+                                html: html,
+                                marker: null
                             });
-                            layerLabels.TALHOES.push(marker);
                         }
                     }
 
