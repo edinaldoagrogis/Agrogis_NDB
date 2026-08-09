@@ -192,6 +192,109 @@
                     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.92-10.44l5.58 5.58"/></svg>
                 </button>
 
+            </div> <!-- end right-controls -->
+
+            <!-- ====== PAINEL ANÁLISE DE SATÉLITE (Desktop) ====== -->
+            <div id="weed-analysis-panel" style="
+                display: none;
+                position: fixed;
+                top: 80px;
+                right: 20px;
+                width: 320px;
+                background: rgba(10, 14, 12, 0.92);
+                backdrop-filter: blur(16px);
+                border: 1px solid rgba(255, 0, 0, 0.3);
+                border-radius: 16px;
+                padding: 20px;
+                z-index: 1500;
+                box-shadow: 0 8px 32px rgba(0,0,0,0.5), 0 0 20px rgba(255,0,0,0.1);
+                font-family: 'Inter', sans-serif;
+            ">
+                <!-- Cabeçalho -->
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;">
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <div style="width: 36px; height: 36px; border-radius: 10px; background: rgba(255,0,0,0.15); border: 1px solid rgba(255,0,0,0.4); display: flex; align-items: center; justify-content: center; font-size: 18px;">🛰️</div>
+                        <div>
+                            <div style="font-size: 13px; font-weight: 700; color: #fff; line-height: 1.2;">Análise de Satélite</div>
+                            <div style="font-size: 10px; color: rgba(255,255,255,0.4); line-height: 1.2;">Sentinel-2 · Planetary Computer</div>
+                        </div>
+                    </div>
+                    <button id="weed-panel-close" style="background: none; border: none; color: rgba(255,255,255,0.5); cursor: pointer; font-size: 18px; line-height: 1;">✕</button>
+                </div>
+
+                <!-- Info do Talhão -->
+                <div style="background: rgba(255,255,255,0.04); border-radius: 10px; padding: 12px; margin-bottom: 14px; border: 1px solid rgba(255,255,255,0.06);">
+                    <div id="weed-talhao-name" style="font-size: 13px; font-weight: 600; color: #fff; margin-bottom: 4px;">—</div>
+                    <div id="weed-talhao-info" style="font-size: 11px; color: rgba(255,255,255,0.5);">Selecione um talhão no mapa</div>
+                </div>
+
+                <!-- Botão de Análise -->
+                <button id="btn-weed-analyze" style="
+                    width: 100%; padding: 12px; border-radius: 10px;
+                    background: linear-gradient(135deg, #c62828, #ff1744);
+                    border: none; color: #fff; font-size: 13px; font-weight: 700;
+                    cursor: pointer; display: flex; align-items: center;
+                    justify-content: center; gap: 8px; transition: all 0.2s;
+                    box-shadow: 0 4px 12px rgba(255,23,68,0.3);
+                " disabled>
+                    <span id="weed-btn-icon">🔍</span>
+                    <span id="weed-btn-text">Identificar Infestação</span>
+                </button>
+
+                <!-- Status / Loading -->
+                <div id="weed-status-area" style="display: none; margin-top: 14px;">
+                    <div id="weed-status-steps" style="display: flex; flex-direction: column; gap: 6px;">
+                        <div class="weed-step" id="step-search" style="display: flex; align-items: center; gap: 8px; font-size: 11px; color: rgba(255,255,255,0.5);">
+                            <span class="step-icon">⏳</span> Buscando imagem Sentinel-2...
+                        </div>
+                        <div class="weed-step" id="step-download" style="display: flex; align-items: center; gap: 8px; font-size: 11px; color: rgba(255,255,255,0.3);">
+                            <span class="step-icon">⬇️</span> Baixando bandas espectrais...
+                        </div>
+                        <div class="weed-step" id="step-ndvi" style="display: flex; align-items: center; gap: 8px; font-size: 11px; color: rgba(255,255,255,0.3);">
+                            <span class="step-icon">📊</span> Calculando NDVI + Z-Score...
+                        </div>
+                        <div class="weed-step" id="step-detect" style="display: flex; align-items: center; gap: 8px; font-size: 11px; color: rgba(255,255,255,0.3);">
+                            <span class="step-icon">🔍</span> Detectando reboleiras...
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Resultado -->
+                <div id="weed-result-area" style="display: none; margin-top: 14px;">
+                    <div id="weed-result-msg" style="font-size: 12px; color: rgba(255,255,255,0.7); background: rgba(255,255,255,0.05); border-radius: 8px; padding: 10px; margin-bottom: 12px; line-height: 1.5; border-left: 3px solid #ff1744;"></div>
+                    
+                    <div id="weed-result-stats" style="display: none; margin-bottom: 12px;">
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+                            <div style="background: rgba(255,23,68,0.1); border: 1px solid rgba(255,23,68,0.3); border-radius: 8px; padding: 10px; text-align: center;">
+                                <div id="weed-stat-ha" style="font-size: 18px; font-weight: 800; color: #ff1744;">—</div>
+                                <div style="font-size: 10px; color: rgba(255,255,255,0.5); margin-top: 2px;">Área Infestada (ha)</div>
+                            </div>
+                            <div style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; padding: 10px; text-align: center;">
+                                <div id="weed-stat-count" style="font-size: 18px; font-weight: 800; color: #ff9f1c;">—</div>
+                                <div style="font-size: 10px; color: rgba(255,255,255,0.5); margin-top: 2px;">Focos Detectados</div>
+                            </div>
+                        </div>
+                        <div style="margin-top: 8px; font-size: 10px; color: rgba(255,255,255,0.3); text-align: center;">
+                            🛰️ Imagem: <span id="weed-stat-date">—</span> · Nuvens: <span id="weed-stat-cloud">—</span>%
+                        </div>
+                    </div>
+
+                    <!-- Botões de exportação -->
+                    <div id="weed-export-btns" style="display: none; display: flex; gap: 8px;">
+                        <button id="btn-export-geojson" style="flex: 1; padding: 8px; border-radius: 8px; background: rgba(46,196,182,0.1); border: 1px solid #2ec4b6; color: #2ec4b6; font-size: 11px; font-weight: 600; cursor: pointer;">📥 GeoJSON</button>
+                        <button id="btn-export-kml" style="flex: 1; padding: 8px; border-radius: 8px; background: rgba(255,159,28,0.1); border: 1px solid #ff9f1c; color: #ff9f1c; font-size: 11px; font-weight: 600; cursor: pointer;">📥 KML</button>
+                        <button id="btn-clear-weed" style="padding: 8px 10px; border-radius: 8px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: rgba(255,255,255,0.5); font-size: 11px; cursor: pointer;" title="Limpar camada">🗑️</button>
+                    </div>
+                </div>
+
+                <!-- Aviso API offline -->
+                <div id="weed-api-offline" style="display: none; margin-top: 10px; font-size: 11px; color: #ff9f1c; background: rgba(255,159,28,0.1); border: 1px solid rgba(255,159,28,0.3); border-radius: 8px; padding: 10px;">
+                    ⚠️ Servidor de análise offline.<br>
+                    <span style="opacity:0.7;">Inicie o <strong>iniciar_api.bat</strong> na pasta <code>backend/</code></span>
+                </div>
+            </div>
+            <!-- ====== FIM PAINEL SATÉLITE ====== -->
+
                 <script>
                     document.getElementById('floating-layers-btn').addEventListener('click', function(e) {
                         e.stopPropagation();
@@ -360,7 +463,7 @@
     <script src="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.js"></script>
     
     <!-- Custom JS App -->
-    <script src="app.js?v=2.6"></script>
+    <script src="app.js?v=3.0"></script>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const menuBtn = document.getElementById('mobile-menu-btn');

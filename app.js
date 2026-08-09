@@ -509,6 +509,10 @@ document.addEventListener('DOMContentLoaded', () => {
                                 if (window.clearAllSelections) {
                                     window.clearAllSelections();
                                 }
+                                // Abre painel de análise de satélite para o talhão clicado (PC)
+                                if (isTalhao && window.openWeedAnalysisPanel) {
+                                    window.openWeedAnalysisPanel({ type: 'Feature', geometry: feature.geometry, properties: props }, props);
+                                }
                             }
                         }
                     });
@@ -1937,3 +1941,348 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
 });
+
+// ═══════════════════════════════════════════════════════════════════
+//  MÓDULO DE DETECÇÃO DE ERVAS DANINHAS — Satellite Weed Detection
+//  Integração com FastAPI backend via Microsoft Planetary Computer
+// ═══════════════════════════════════════════════════════════════════
+(function() {
+    const API_URL = 'http://localhost:8000';
+
+    // Estado do módulo
+    let selectedTalhaoFeature = null;   // Feature GeoJSON do talhão selecionado
+    let weedResultGeoJSON = null;       // GeoJSON com os focos detectados
+    let weedLayer = null;               // Camada Leaflet com os polígonos vermelhos
+    let apiOnline = false;
+
+    // Elementos do DOM
+    const panel       = document.getElementById('weed-analysis-panel');
+    const btnAnalyze  = document.getElementById('btn-weed-analyze');
+    const btnClose    = document.getElementById('weed-panel-close');
+    const talhaoName  = document.getElementById('weed-talhao-name');
+    const talhaoInfo  = document.getElementById('weed-talhao-info');
+    const statusArea  = document.getElementById('weed-status-area');
+    const resultArea  = document.getElementById('weed-result-area');
+    const resultMsg   = document.getElementById('weed-result-msg');
+    const resultStats = document.getElementById('weed-result-stats');
+    const exportBtns  = document.getElementById('weed-export-btns');
+    const apiOffline  = document.getElementById('weed-api-offline');
+    const statHa      = document.getElementById('weed-stat-ha');
+    const statCount   = document.getElementById('weed-stat-count');
+    const statDate    = document.getElementById('weed-stat-date');
+    const statCloud   = document.getElementById('weed-stat-cloud');
+    const btnGeoJSON  = document.getElementById('btn-export-geojson');
+    const btnKML      = document.getElementById('btn-export-kml');
+    const btnClear    = document.getElementById('btn-clear-weed');
+
+    // ── Verificar se API está online ────────────────────────────────
+    function checkApiHealth() {
+        fetch(`${API_URL}/health`, { signal: AbortSignal.timeout(3000) })
+            .then(r => r.ok ? r.json() : Promise.reject())
+            .then(() => {
+                apiOnline = true;
+                if (apiOffline) apiOffline.style.display = 'none';
+                updateAnalyzeButton();
+            })
+            .catch(() => {
+                apiOnline = false;
+                if (panel && panel.style.display !== 'none') {
+                    if (apiOffline) apiOffline.style.display = 'block';
+                    if (btnAnalyze) {
+                        btnAnalyze.disabled = true;
+                        btnAnalyze.style.opacity = '0.5';
+                    }
+                }
+            });
+    }
+
+    // Verifica a cada 10 segundos
+    setInterval(checkApiHealth, 10000);
+
+    // ── Função chamada pelo app.js quando um talhão é clicado ────────
+    window.openWeedAnalysisPanel = function(feature, props) {
+        selectedTalhaoFeature = feature;
+
+        const nomeFaz  = props.NOME_FAZ || props['DL DESCFUNDOA'] || 'Fazenda';
+        const codTal   = props.COD_TALHAO || props.TALHAO || '—';
+        const corte    = props['DL CORTE'] || '—';
+        const variedade= props['DL VARIEDADE'] || '—';
+        const areaTal  = props.TALHAO_ARE || props['DL AREA'] || '—';
+
+        if (talhaoName) talhaoName.textContent = `Talhão ${codTal} — ${nomeFaz}`;
+        if (talhaoInfo) talhaoInfo.textContent = `Corte: ${corte} · Variedade: ${variedade} · Área: ${areaTal} ha`;
+
+        // Resetar painel
+        resetPanel();
+
+        // Mostrar painel
+        if (panel) panel.style.display = 'block';
+
+        // Checar API
+        checkApiHealth();
+        updateAnalyzeButton();
+    };
+
+    // ── Atualiza estado do botão ─────────────────────────────────────
+    function updateAnalyzeButton() {
+        if (!btnAnalyze) return;
+        const canAnalyze = selectedTalhaoFeature && apiOnline;
+        btnAnalyze.disabled = !canAnalyze;
+        btnAnalyze.style.opacity = canAnalyze ? '1' : '0.5';
+        btnAnalyze.style.cursor = canAnalyze ? 'pointer' : 'not-allowed';
+    }
+
+    // ── Resetar painel para estado inicial ───────────────────────────
+    function resetPanel() {
+        if (statusArea) statusArea.style.display = 'none';
+        if (resultArea) resultArea.style.display = 'none';
+        if (resultStats) resultStats.style.display = 'none';
+        if (exportBtns) exportBtns.style.display = 'none';
+        if (apiOffline) apiOffline.style.display = 'none';
+        document.getElementById('btn-weed-icon') && (document.getElementById('weed-btn-icon').textContent = '🔍');
+        const btnText = document.getElementById('weed-btn-text');
+        if (btnText) btnText.textContent = 'Identificar Infestação';
+
+        // Resetar passos
+        ['step-search', 'step-download', 'step-ndvi', 'step-detect'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.style.color = 'rgba(255,255,255,0.3)';
+        });
+    }
+
+    // ── Animar passo do loading ───────────────────────────────────────
+    function activateStep(stepId) {
+        const el = document.getElementById(stepId);
+        if (el) {
+            el.style.color = '#ff9f1c';
+            el.style.fontWeight = '600';
+        }
+    }
+    function completeStep(stepId) {
+        const el = document.getElementById(stepId);
+        if (el) {
+            el.style.color = '#2ec4b6';
+            const icon = el.querySelector('.step-icon');
+            if (icon) icon.textContent = '✅';
+        }
+    }
+
+    // ── Executar análise ─────────────────────────────────────────────
+    async function runAnalysis() {
+        if (!selectedTalhaoFeature || !apiOnline) return;
+
+        const props = selectedTalhaoFeature.properties || {};
+
+        // Atualizar UI
+        if (statusArea) statusArea.style.display = 'block';
+        if (resultArea) resultArea.style.display = 'none';
+        if (btnAnalyze) {
+            btnAnalyze.disabled = true;
+            document.getElementById('weed-btn-icon').textContent = '⏳';
+            document.getElementById('weed-btn-text').textContent = 'Analisando...';
+        }
+
+        // Simular passos visuais com timing (a API vai processar tudo de vez)
+        activateStep('step-search');
+        const stepTimer1 = setTimeout(() => { completeStep('step-search'); activateStep('step-download'); }, 2000);
+        const stepTimer2 = setTimeout(() => { completeStep('step-download'); activateStep('step-ndvi'); }, 6000);
+        const stepTimer3 = setTimeout(() => { completeStep('step-ndvi'); activateStep('step-detect'); }, 10000);
+
+        try {
+            const payload = {
+                geojson: selectedTalhaoFeature,
+                cod_talhao: String(props.COD_TALHAO || props.TALHAO || ''),
+                nome_faz: String(props.NOME_FAZ || ''),
+                corte: String(props['DL CORTE'] || ''),
+                area_ha: parseFloat(props.TALHAO_ARE || props['DL AREA'] || 0),
+                days_back: 20,
+                max_cloud: 20
+            };
+
+            const response = await fetch(`${API_URL}/analyze`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload),
+            });
+
+            // Limpar timers de animação
+            clearTimeout(stepTimer1);
+            clearTimeout(stepTimer2);
+            clearTimeout(stepTimer3);
+            completeStep('step-search');
+            completeStep('step-download');
+            completeStep('step-ndvi');
+            completeStep('step-detect');
+
+            if (!response.ok) {
+                const err = await response.json();
+                throw new Error(err.detail || 'Erro na análise');
+            }
+
+            const result = await response.json();
+
+            // Mostrar resultado
+            if (resultArea) resultArea.style.display = 'block';
+            if (resultMsg) resultMsg.textContent = result.message;
+
+            if (result.success && result.reboleiras && result.reboleiras.length > 0) {
+                weedResultGeoJSON = result.geojson_collection;
+
+                // Renderizar polígonos no mapa
+                renderWeedLayer(result.geojson_collection);
+
+                // Mostrar estatísticas
+                if (resultStats) resultStats.style.display = 'block';
+                if (statHa) statHa.textContent = result.total_infested_ha;
+                if (statCount) statCount.textContent = result.reboleiras.length;
+                if (statDate) statDate.textContent = result.satellite_date || '—';
+                if (statCloud) statCloud.textContent = result.cloud_cover ? result.cloud_cover.toFixed(0) : '—';
+                if (exportBtns) exportBtns.style.display = 'flex';
+            } else {
+                weedResultGeoJSON = null;
+                if (resultStats) resultStats.style.display = 'none';
+                if (exportBtns) exportBtns.style.display = 'none';
+            }
+
+        } catch (err) {
+            clearTimeout(stepTimer1);
+            clearTimeout(stepTimer2);
+            clearTimeout(stepTimer3);
+            if (resultArea) resultArea.style.display = 'block';
+            if (resultMsg) {
+                resultMsg.textContent = `❌ Erro: ${err.message}`;
+                resultMsg.style.borderLeftColor = '#ff9f1c';
+            }
+        } finally {
+            if (btnAnalyze) {
+                btnAnalyze.disabled = false;
+                document.getElementById('weed-btn-icon').textContent = '🔄';
+                document.getElementById('weed-btn-text').textContent = 'Analisar Novamente';
+                updateAnalyzeButton();
+            }
+        }
+    }
+
+    // ── Renderizar camada de infestação no mapa ──────────────────────
+    function renderWeedLayer(geojsonCollection) {
+        if (!window.map) return;
+
+        // Remover camada anterior
+        clearWeedLayer();
+
+        weedLayer = L.geoJSON(geojsonCollection, {
+            style: {
+                color: '#D32F2F',
+                weight: 2,
+                fillColor: '#FF0000',
+                fillOpacity: 0.75,
+                opacity: 1,
+            },
+            onEachFeature: (feature, layer) => {
+                const areaMeta = feature.properties || {};
+                const areaM2 = areaMeta.area_m2 ? areaMeta.area_m2.toLocaleString('pt-BR') : '—';
+                const areaHa = areaMeta.area_ha ? areaMeta.area_ha : '—';
+                layer.bindPopup(`
+                    <div style="font-family:'Inter',sans-serif; min-width:160px;">
+                        <div style="font-weight:700; color:#FF0000; margin-bottom:8px; font-size:13px;">🌿 Foco de Infestação</div>
+                        <div style="font-size:12px; color:#333; display:flex; justify-content:space-between; margin-bottom:4px;">
+                            <span>Área:</span><strong>${areaM2} m²</strong>
+                        </div>
+                        <div style="font-size:12px; color:#333; display:flex; justify-content:space-between;">
+                            <span>Em hectares:</span><strong>${areaHa} ha</strong>
+                        </div>
+                    </div>
+                `, { className: 'weed-popup' });
+            }
+        }).addTo(window.map);
+
+        // Ajustar zoom para ver os focos
+        if (weedLayer.getBounds().isValid()) {
+            window.map.flyToBounds(weedLayer.getBounds(), { padding: [60, 60], duration: 1.5 });
+        }
+    }
+
+    // ── Limpar camada de infestação ──────────────────────────────────
+    function clearWeedLayer() {
+        if (weedLayer && window.map) {
+            window.map.removeLayer(weedLayer);
+            weedLayer = null;
+        }
+    }
+
+    // ── Exportar GeoJSON ─────────────────────────────────────────────
+    function exportGeoJSON() {
+        if (!weedResultGeoJSON) return;
+        const blob = new Blob([JSON.stringify(weedResultGeoJSON, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        const codTal = selectedTalhaoFeature?.properties?.COD_TALHAO || 'talhao';
+        a.href = url;
+        a.download = `reboleiras_talhao_${codTal}_${new Date().toISOString().slice(0,10)}.geojson`;
+        a.click();
+        URL.revokeObjectURL(url);
+    }
+
+    // ── Exportar KML ─────────────────────────────────────────────────
+    function exportKML() {
+        if (!weedResultGeoJSON) return;
+
+        const features = weedResultGeoJSON.features || [];
+        const placemarks = features.map((f, i) => {
+            const coords = f.geometry.coordinates;
+            const coordStr = geomToKMLCoords(f.geometry);
+            const area = f.properties.area_m2 || 0;
+            return `
+    <Placemark>
+      <name>Foco ${i + 1} (${area.toLocaleString('pt-BR')} m²)</name>
+      <description>Área infestada: ${area} m² / ${(area/10000).toFixed(4)} ha</description>
+      <Style>
+        <LineStyle><color>ff0000ff</color><width>2</width></LineStyle>
+        <PolyStyle><color>bf0000ff</color></PolyStyle>
+      </Style>
+      ${coordStr}
+    </Placemark>`;
+        }).join('\n');
+
+        const codTal = selectedTalhaoFeature?.properties?.COD_TALHAO || 'talhao';
+        const kml = `<?xml version="1.0" encoding="UTF-8"?>
+<kml xmlns="http://www.opengis.net/kml/2.2">
+<Document>
+  <name>Reboleiras Talhão ${codTal}</name>
+  <description>Focos de infestação detectados via Sentinel-2</description>
+  ${placemarks}
+</Document>
+</kml>`;
+
+        const blob = new Blob([kml], { type: 'application/vnd.google-earth.kml+xml' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `reboleiras_talhao_${codTal}_${new Date().toISOString().slice(0,10)}.kml`;
+        a.click();
+        URL.revokeObjectURL(url);
+    }
+
+    function geomToKMLCoords(geometry) {
+        if (geometry.type === 'Polygon') {
+            const ring = geometry.coordinates[0].map(c => `${c[0]},${c[1]},0`).join(' ');
+            return `<Polygon><outerBoundaryIs><LinearRing><coordinates>${ring}</coordinates></LinearRing></outerBoundaryIs></Polygon>`;
+        } else if (geometry.type === 'MultiPolygon') {
+            const parts = geometry.coordinates.map(poly => {
+                const ring = poly[0].map(c => `${c[0]},${c[1]},0`).join(' ');
+                return `<Polygon><outerBoundaryIs><LinearRing><coordinates>${ring}</coordinates></LinearRing></outerBoundaryIs></Polygon>`;
+            });
+            return `<MultiGeometry>${parts.join('')}</MultiGeometry>`;
+        }
+        return '';
+    }
+
+    // ── Event Listeners ──────────────────────────────────────────────
+    if (btnAnalyze) btnAnalyze.addEventListener('click', runAnalysis);
+    if (btnClose)   btnClose.addEventListener('click', () => { if (panel) panel.style.display = 'none'; });
+    if (btnGeoJSON) btnGeoJSON.addEventListener('click', exportGeoJSON);
+    if (btnKML)     btnKML.addEventListener('click', exportKML);
+    if (btnClear)   btnClear.addEventListener('click', () => { clearWeedLayer(); weedResultGeoJSON = null; resetPanel(); });
+
+})();
+
