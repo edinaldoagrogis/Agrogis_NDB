@@ -739,7 +739,7 @@ body, html {
     box-shadow: none !important;  
     color: #f6ea7c !important;  
     font-weight: 500 !important;  
-    font-size: 8.5px !important;  
+    font-size: 13px !important;  
     font-family: Arial, sans-serif !important;
     letter-spacing: 0.3px;
     text-shadow: 1px 1px 1px rgba(0,0,0,0.8), -1px -1px 1px rgba(0,0,0,0.8), 1px -1px 1px rgba(0,0,0,0.8), -1px 1px 1px rgba(0,0,0,0.8) !important;
@@ -772,7 +772,7 @@ body, html {
     border: none !important;
     box-shadow: none !important;
     color: #ffffff !important;
-    font-size: 11px !important;
+    font-size: 14px !important;
     font-weight: 700 !important;
     font-family: Arial, sans-serif !important;
     text-shadow: 1px 1px 1px #000, -1px -1px 1px #000, 1px -1px 1px #000, -1px 1px 1px #000, 0px 1px 3px rgba(0,0,0,0.8) !important;
@@ -795,9 +795,9 @@ body, html {
     font-weight: 600;
     letter-spacing: 0.3px;
 }
-.tc-cod { font-size: 6px; font-weight: bold; }
-.tc-area { font-size: 7.5px; margin: 1px 0; }
-.tc-var { font-size: 5px; opacity: 0.85; }
+.tc-cod { font-size: 9px; font-weight: bold; }
+.tc-area { font-size: 11px; margin: 1px 0; }
+.tc-var { font-size: 8px; opacity: 0.85; }
 
 /* Equipe Marker Styles */
 .equipe-marker {
