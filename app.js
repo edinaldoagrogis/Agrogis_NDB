@@ -810,6 +810,21 @@ document.addEventListener('DOMContentLoaded', () => {
                             showContextMenu(type, feature.properties.id, feature.properties.NOME || 'Sem Nome', e.latlng);
                             L.DomEvent.stopPropagation(e);
                         });
+                        
+                        // Fallback manual de Pressionar e Segurar (Long Press) para Mobile
+                        let pressTimer;
+                        layer.on('mousedown touchstart', (e) => {
+                            clearTimeout(pressTimer);
+                            pressTimer = setTimeout(() => {
+                                let latlng = e.latlng;
+                                if (!latlng && layer.getLatLng) latlng = layer.getLatLng();
+                                if (!latlng && layer.getBounds) latlng = layer.getBounds().getCenter();
+                                showContextMenu(type, feature.properties.id, feature.properties.NOME || 'Sem Nome', latlng);
+                            }, 600);
+                        });
+                        layer.on('mouseup mouseout mousemove touchend touchcancel', () => {
+                            clearTimeout(pressTimer);
+                        });
                     }
                 }
             };
