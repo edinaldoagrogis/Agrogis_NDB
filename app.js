@@ -29,6 +29,7 @@ document.addEventListener('DOMContentLoaded', () => {
             container.style.marginBottom = '10px';
             container.style.marginRight = '10px';
             container.style.backdropFilter = 'blur(12px)';
+            container.id = 'btn-compass-control';
             container.title = 'Habilitar/Desabilitar Rotação Livre';
 
             const icon = L.DomUtil.create('div', '', container);
@@ -56,13 +57,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 
                 if (isUnlocked) {
                     if (map.touchRotate) map.touchRotate.enable();
+                    container.classList.add('is-active-compass');
                     icon.style.opacity = '1';
                     container.style.borderColor = '#e85d04';
                     container.style.boxShadow = '0 0 10px rgba(232,93,4,0.3)';
                 } else {
                     if (map.touchRotate) map.touchRotate.disable();
                     if (typeof map.setBearing === 'function') map.setBearing(0);
-                    icon.style.opacity = '0.4';
+                    container.classList.remove('is-active-compass');
+                    icon.style.opacity = '0.5';
                     container.style.borderColor = 'rgba(255,255,255,0.1)';
                     container.style.boxShadow = 'none';
                 }
@@ -107,8 +110,11 @@ document.addEventListener('DOMContentLoaded', () => {
             container.onclick = function(e){
                 L.DomEvent.stopPropagation(e);
                 
-                if (typeof map.setBearing === 'function') {
-                    map.setBearing(0); // Reset rotation to North
+                const compassBtn = document.getElementById('btn-compass-control');
+                if (compassBtn && compassBtn.classList.contains('is-active-compass')) {
+                    compassBtn.click(); // Desativa a bussola de forma limpa (restaura estilo e reseta rotacao)
+                } else if (typeof map.setBearing === 'function') {
+                    map.setBearing(0); // Failsafe para alinhar ao Norte
                 }
                 
                 if (window._agrogis_gpsMarker) {
