@@ -2123,7 +2123,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const seen = new Set();
         if (!window.loadedLayers) return;
         Object.keys(window.loadedLayers).forEach(layerName => {
-            if (!layerName.toLowerCase().includes('talhao') && !layerName.toLowerCase().includes('talhão')) return;
             const mapLayer = window.loadedLayers[layerName];
             if (!mapLayer || !mapLayer.eachLayer) return;
             mapLayer.eachLayer(layer => {
@@ -2424,6 +2423,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // ── Listeners ─────────────────────────────────────────────────────
     if (btnAnalyze)      btnAnalyze.addEventListener('click', runAnalysis);
+    if (searchInput) {
+        searchInput.addEventListener('focus', populateFazendaSearch);
+        searchInput.addEventListener('click', populateFazendaSearch);
+    }
     if (btnClose)        btnClose.addEventListener('click', () => { if (panel) panel.style.display = 'none'; });
     if (btnGeoJSON)      btnGeoJSON.addEventListener('click', () => doExportGeoJSON(weedResultGeoJSON, selectedFazendaName));
     if (btnKML)          btnKML.addEventListener('click', () => doExportKML(weedResultGeoJSON, selectedFazendaName));
