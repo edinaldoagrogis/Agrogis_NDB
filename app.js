@@ -2065,9 +2065,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // ── Coletador de features da fazenda a partir do GeoJSON carregado ─
     function getFazendaFeatures(fazendaId) {
-        // Obtém todos os talhões da mesma fazenda do loadedLayers
         const results = [];
         if (!window.loadedLayers) return results;
+        // Função para extrair apenas a parte inteira do ID (ex: "9902,0" -> "9902")
+        const cleanId = (id) => String(id || '').split(',')[0].split('.')[0].trim();
+        const baseTargetId = cleanId(fazendaId);
+        if (!baseTargetId) return results;
+
         Object.keys(window.loadedLayers).forEach(layerName => {
             if (!layerName.toLowerCase().includes('talhao') && !layerName.toLowerCase().includes('talhão')) return;
             const mapLayer = window.loadedLayers[layerName];
@@ -2076,7 +2080,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const props = layer.feature && layer.feature.properties;
                 if (!props) return;
                 const fid = props.FAZENDA || props.DL_FUNDOAGRIC || props['DL FUNDOAGRIC'];
-                if (String(fid) === String(fazendaId)) {
+                if (cleanId(fid) === baseTargetId) {
                     results.push(layer.feature);
                 }
             });
@@ -2085,22 +2089,31 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function getFazendaFeaturesByName(nomeFaz) {
-        const results = [];
-        if (!window.loadedLayers) return results;
+        let matchedId = null;
+        if (!window.loadedLayers) return [];
+        
+        // Primeiro, encontrar o ID da fazenda que bate com o nome buscado
         Object.keys(window.loadedLayers).forEach(layerName => {
+            if (matchedId) return; // already found
             if (!layerName.toLowerCase().includes('talhao') && !layerName.toLowerCase().includes('talhão')) return;
             const mapLayer = window.loadedLayers[layerName];
             if (!mapLayer || !mapLayer.eachLayer) return;
             mapLayer.eachLayer(layer => {
+                if (matchedId) return;
                 const props = layer.feature && layer.feature.properties;
                 if (!props) return;
                 const name = String(props.NOME_FAZ || props['DL DESCFUNDOA'] || '').toLowerCase();
                 if (name.includes(nomeFaz.toLowerCase()) || nomeFaz.toLowerCase().includes(name.split(' ').slice(0,3).join(' ').toLowerCase())) {
-                    results.push(layer.feature);
+                    matchedId = props.FAZENDA || props.DL_FUNDOAGRIC || props['DL FUNDOAGRIC'];
                 }
             });
         });
-        return results;
+
+        // Se encontrou o ID, retorna todos os talhões dessa fazenda pelo ID
+        if (matchedId) {
+            return getFazendaFeatures(matchedId);
+        }
+        return [];
     }
 
     // ── Popula o datalist de pesquisa ────────────────────────────────
@@ -2132,7 +2145,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const fazId   = props.FAZENDA || props['DL FUNDOAGRIC'] || '';
         const nomeFaz = props.NOME_FAZ || props['DL DESCFUNDOA'] || 'Fazenda';
 
-        // Coletar todos os talhões da mesma fazenda
+        // Coletar todos os talhões da mesma fazenda pelo ID limpo
         selectedFazendaFeatures = getFazendaFeatures(fazId);
         if (selectedFazendaFeatures.length === 0) selectedFazendaFeatures = [feature];
         selectedFazendaName = nomeFaz;
