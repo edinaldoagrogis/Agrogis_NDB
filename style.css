@@ -974,6 +974,11 @@ body.disable-map-hover .leaflet-interactive {
     pointer-events: none !important;
 }
 
+/* Visibility based on platform */
+.app-only {
+    display: none !important;
+}
+
 /* ------------------- MOBILE RESPONSIVENESS ------------------- */
 @media (max-width: 768px) {
     .topbar-right .user-menu { display: none; }
@@ -986,6 +991,10 @@ body.disable-map-hover .leaflet-interactive {
     #tool-weed-btn,
     #weed-analysis-panel {
         display: none !important;
+    }
+    
+    .app-only {
+        display: flex !important;
     }
 
     .drawer-panel {
