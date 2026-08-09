@@ -2054,11 +2054,24 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Abrir painel
                 if (panel) panel.style.display = 'block';
                 document.getElementById('floating-tools-panel').style.display = 'none';
+                
+                // Ligar servidor via pywebview
+                if (window.pywebview && window.pywebview.api) {
+                    window.pywebview.api.start_server().then(res => console.log(res));
+                }
+                
                 checkApiHealth();
             } else {
                 toolWeedBtn.style.background = 'rgba(255,0,0,0.08)';
                 toolWeedBtn.style.borderColor = 'rgba(255,0,0,0.3)';
                 toolWeedBtn.title = 'Identificar infestação de ervas daninhas por satélite';
+                
+                // Desligar servidor via pywebview se houver botão para desligar, 
+                // mas espera, o botão de fechar painel é quem desativa a ferramenta geralmente,
+                // no entanto se clicar no ícone denovo também deve desligar.
+                if (window.pywebview && window.pywebview.api) {
+                    window.pywebview.api.stop_server().then(res => console.log(res));
+                }
             }
         });
     }
@@ -2452,7 +2465,14 @@ document.addEventListener('DOMContentLoaded', () => {
         searchInput.addEventListener('focus', populateFazendaSearch);
         searchInput.addEventListener('click', populateFazendaSearch);
     }
-    if (btnClose)        btnClose.addEventListener('click', () => { if (panel) panel.style.display = 'none'; });
+    if (btnClose) {
+        btnClose.addEventListener('click', () => { 
+            if (panel) panel.style.display = 'none';
+            if (window.pywebview && window.pywebview.api) {
+                window.pywebview.api.stop_server().then(res => console.log(res));
+            }
+        });
+    }
     if (btnGeoJSON)      btnGeoJSON.addEventListener('click', () => doExportGeoJSON(weedResultGeoJSON, selectedFazendaName));
     if (btnKML)          btnKML.addEventListener('click', () => doExportKML(weedResultGeoJSON, selectedFazendaName));
     if (btnClear)        btnClear.addEventListener('click', () => { clearWeedLayer(); weedResultGeoJSON = null; resetPanel(); });

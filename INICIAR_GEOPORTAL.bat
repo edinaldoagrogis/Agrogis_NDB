@@ -9,5 +9,5 @@ echo.
 powershell.exe -ExecutionPolicy Bypass -File "%~dp0update_layers.ps1"
 
 echo.
-echo Abrindo o portal no navegador...
-start "" "%~dp0index.html"
+echo Abrindo o portal no Desktop App Nativo...
+python "%~dp0desktop_app.py"
