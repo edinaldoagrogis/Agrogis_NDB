@@ -5,7 +5,7 @@ import os
 import concurrent.futures
 
 # CONFIGURATION
-ZOOM_LEVELS = [11, 12, 13]  # Gerar múltiplos níveis de zoom
+ZOOM_LEVELS = [11, 13, 14, 15]  # Gerar zoom até 15 para alta resolução
 GEOJSON_FILE = 'TALHOES.geojson'
 OUTPUT_DIR = 'offline_tiles'
 OUTPUT_JS = 'offline_tiles_list.js'
@@ -26,56 +26,51 @@ def main():
     with open(GEOJSON_FILE, 'r', encoding='utf-8') as f:
         data = json.load(f)
         
-    min_lon = 180; max_lon = -180; min_lat = 90; max_lat = -90
+    os.makedirs(OUTPUT_DIR, exist_ok=True)
+    all_tiles = set()
+    
     for feat in data.get('features', []):
         geom = feat.get('geometry')
         if not geom: continue
         coords = geom.get('coordinates')
         gtype = geom.get('type')
+        
+        f_min_lon = 180; f_max_lon = -180
+        f_min_lat = 90; f_max_lat = -90
+        
         def process_coords(c, g):
-            nonlocal min_lon, max_lon, min_lat, max_lat
+            nonlocal f_min_lon, f_max_lon, f_min_lat, f_max_lat
             if g == 'Polygon':
                 for ring in c:
                     for pt in ring:
-                        min_lon = min(min_lon, pt[0]); max_lon = max(max_lon, pt[0])
-                        min_lat = min(min_lat, pt[1]); max_lat = max(max_lat, pt[1])
+                        f_min_lon = min(f_min_lon, pt[0]); f_max_lon = max(f_max_lon, pt[0])
+                        f_min_lat = min(f_min_lat, pt[1]); f_max_lat = max(f_max_lat, pt[1])
             elif g == 'MultiPolygon':
                 for poly in c:
                     for ring in poly:
                         for pt in ring:
-                            min_lon = min(min_lon, pt[0]); max_lon = max(max_lon, pt[0])
-                            min_lat = min(min_lat, pt[1]); max_lat = max(max_lat, pt[1])
+                            f_min_lon = min(f_min_lon, pt[0]); f_max_lon = max(f_max_lon, pt[0])
+                            f_min_lat = min(f_min_lat, pt[1]); f_max_lat = max(f_max_lat, pt[1])
+                            
         process_coords(coords, gtype)
         
-    # Adicionar uma margem de segurança (5%)
-    lon_margin = (max_lon - min_lon) * 0.05
-    lat_margin = (max_lat - min_lat) * 0.05
-    min_lon -= lon_margin; max_lon += lon_margin
-    min_lat -= lat_margin; max_lat += lat_margin
-    
-    print(f"Limites da imagem (L/B/R/T): {min_lon}, {min_lat} / {max_lon}, {max_lat}")
-
-    os.makedirs(OUTPUT_DIR, exist_ok=True)
-    
-    all_tiles = []
-    
-    for z in ZOOM_LEVELS:
-        x_min, y_max = deg2num(min_lat, min_lon, z)
-        x_max, y_min = deg2num(max_lat, max_lon, z)
+        # Adicionar pequena margem para este talhão
+        lon_margin = (f_max_lon - f_min_lon) * 0.10 if f_max_lon > f_min_lon else 0.001
+        lat_margin = (f_max_lat - f_min_lat) * 0.10 if f_max_lat > f_min_lat else 0.001
+        f_min_lon -= lon_margin; f_max_lon += lon_margin
+        f_min_lat -= lat_margin; f_max_lat += lat_margin
         
-        if y_min > y_max:
-            y_min, y_max = y_max, y_min
-            
-        width_tiles = x_max - x_min + 1
-        height_tiles = y_max - y_min + 1
-        print(f"Zoom {z}: {width_tiles}x{height_tiles} = {width_tiles * height_tiles} tiles")
-        
-        for x in range(x_min, x_max + 1):
-            for y in range(y_min, y_max + 1):
-                all_tiles.append((z, x, y))
-                
+        for z in ZOOM_LEVELS:
+            x_min, y_max = deg2num(f_min_lat, f_min_lon, z)
+            x_max, y_min = deg2num(f_max_lat, f_max_lon, z)
+            if y_min > y_max:
+                y_min, y_max = y_max, y_min
+            for x in range(x_min, x_max + 1):
+                for y in range(y_min, y_max + 1):
+                    all_tiles.add((z, x, y))
+                    
     total_tiles = len(all_tiles)
-    print(f"Total de fragmentos (tiles) a baixar: {total_tiles}")
+    print(f"Total de fragmentos otimizados a baixar: {total_tiles}")
     
     if total_tiles > 3000:
         print("Muitos tiles! Abortando para segurança.")
