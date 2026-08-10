@@ -1,30 +1,8 @@
-const CACHE_NAME = 'agrogis-v49';
+const CACHE_NAME = 'agrogis-v50';
 
 // Core assets to pre-cache when the Service Worker installs
-const PRECACHE_URLS = [
-    './',
-    './index.html',
-    './style.css',
-    './app.js',
-    './auth.js',
-    './layers_data.js',
-    './manifest.json',
-    './icone_drone.png.png',
-    './logo.png.jpg',
-    'https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap',
-    'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css',
-    'https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.css',
-    'https://unpkg.com/@turf/turf@6/turf.min.js',
-    'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js',
-    'https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.js',
-    'https://unpkg.com/leaflet-rotate@0.2.8/dist/leaflet-rotate.js'
-];
-
 try {
     importScripts('./offline_tiles_list.js');
-    if (typeof OFFLINE_TILES_LIST !== 'undefined') {
-        PRECACHE_URLS.push(...OFFLINE_TILES_LIST);
-    }
 } catch (e) {
     console.warn("Offline tiles list not available yet.");
 }
@@ -34,17 +12,45 @@ self.addEventListener('install', event => {
     self.skipWaiting();
     event.waitUntil(
         caches.open(CACHE_NAME)
-            .then(cache => {
-                console.log('[ServiceWorker] Pre-caching offline assets');
-                // Use catch so if one external URL fails, the whole SW doesn't crash
-                return Promise.allSettled(
-                    PRECACHE_URLS.map(url => {
-                        return fetch(url).then(response => {
-                            if (!response.ok) throw new Error('Falha no fetch');
-                            return cache.put(url, response);
-                        });
-                    })
+            .then(async cache => {
+                console.log('[ServiceWorker] Pre-caching core assets');
+                
+                // 1. Array de assets base
+                const coreAssets = [
+                    './',
+                    './index.html',
+                    './style.css',
+                    './app.js',
+                    './auth.js',
+                    './layers_data.js',
+                    './manifest.json',
+                    './icone_drone.png.png',
+                    './logo.png.jpg',
+                    'https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap',
+                    'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css',
+                    'https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.css',
+                    'https://unpkg.com/@turf/turf@6/turf.min.js',
+                    'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js',
+                    'https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.js',
+                    'https://unpkg.com/leaflet-rotate@0.2.8/dist/leaflet-rotate.js'
+                ];
+                
+                await Promise.allSettled(
+                    coreAssets.map(url => fetch(url).then(r => { if(r.ok) cache.put(url, r); }))
                 );
+
+                // 2. Array de tiles (se existir) baixado em lotes controlados
+                if (typeof OFFLINE_TILES_LIST !== 'undefined') {
+                    console.log(`[ServiceWorker] Pre-caching ${OFFLINE_TILES_LIST.length} tiles in batches`);
+                    const batchSize = 25; // Baixar 25 por vez para não esgotar as conexões do celular
+                    for (let i = 0; i < OFFLINE_TILES_LIST.length; i += batchSize) {
+                        const batch = OFFLINE_TILES_LIST.slice(i, i + batchSize);
+                        await Promise.allSettled(
+                            batch.map(url => fetch(url).then(r => { if(r.ok) cache.put(url, r); }).catch(() => {}))
+                        );
+                    }
+                }
+                console.log('[ServiceWorker] Install complete');
             })
     );
 });
