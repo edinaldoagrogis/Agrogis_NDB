@@ -1875,8 +1875,17 @@ loadedLayers[type.toUpperCase()] = myLayers[type];
         setTimeout(() => { isPopupActive = false; }, 100); 
     });
 
+    let isFirstMapClick = true;
     // Toggle UI visibility on map click
     map.on('click', function() {
+        if (isFirstMapClick) {
+            isFirstMapClick = false;
+            if (window._agrogis_gpsMarker) {
+                map.flyTo(window._agrogis_gpsMarker.getLatLng(), 16, {duration: 1.5});
+            }
+            return;
+        }
+        
         if (window.drawActive || window.measureActive) return; // Prevent hiding UI when drawing/measuring
         if (isPopupActive) return; // Não oculta a UI se o clique for para limpar a seleção/fechar a tabela de atributo
         document.body.classList.toggle('ui-hidden');
