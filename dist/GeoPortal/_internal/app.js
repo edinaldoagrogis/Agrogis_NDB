@@ -1080,8 +1080,6 @@ loadedLayers[type.toUpperCase()] = myLayers[type];
         };
 
     function initCustomLayers() {
-        window.applyCustomPassword = applyCustomPassword;
-        window.clearCustomPasswords = clearCustomPasswords;
         
         loadCustomLayer('pontos');
         loadCustomLayer('areas');
@@ -1250,6 +1248,33 @@ loadedLayers[type.toUpperCase()] = myLayers[type];
 
     // Search functionality - Locate Fazenda
     const searchInput = document.getElementById('layer-search');
+    const searchIcon = document.querySelector('.search-container.floating .search-icon');
+    if (searchIcon && searchInput) {
+        let isExpanded = false;
+        
+        searchIcon.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            if (isExpanded) {
+                searchInput.blur();
+                isExpanded = false;
+            } else {
+                searchInput.focus();
+                isExpanded = true;
+            }
+        });
+
+        searchInput.addEventListener('focus', () => {
+            isExpanded = true;
+        });
+
+        searchInput.addEventListener('blur', () => {
+            setTimeout(() => {
+                isExpanded = false;
+            }, 200);
+        });
+    }
     searchInput.addEventListener('input', (e) => {
         const query = e.target.value.toLowerCase().trim();
         if (!query) return;

@@ -12,6 +12,10 @@ echo [2/3] Compilando o aplicativo...
 if exist "build" rmdir /s /q "build"
 if exist "dist\GeoPortal" rmdir /s /q "dist\GeoPortal"
 
+echo.
+echo Gerando mapa offline...
+python generate_offline_basemap.py
+
 :: Run PyInstaller
 :: --noconsole prevents the command prompt from appearing
 :: --add-data bundles the frontend files into the executable
@@ -23,6 +27,7 @@ pyinstaller --name "GeoPortal" -y ^
     --add-data "*.jpg;." ^
     --add-data "*.png;." ^
     --add-data "*.geojson;." ^
+    --add-data "offline_tiles;offline_tiles" ^
     --hidden-import uvicorn ^
     --hidden-import fastapi ^
     --hidden-import pydantic ^

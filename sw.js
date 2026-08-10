@@ -1,4 +1,4 @@
-const CACHE_NAME = 'agrogis-v46';
+const CACHE_NAME = 'agrogis-v48';
 
 // Core assets to pre-cache when the Service Worker installs
 const PRECACHE_URLS = [
@@ -19,6 +19,15 @@ const PRECACHE_URLS = [
     'https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.js',
     'https://unpkg.com/leaflet-rotate@0.2.8/dist/leaflet-rotate.js'
 ];
+
+try {
+    importScripts('./offline_tiles_list.js');
+    if (typeof OFFLINE_TILES_LIST !== 'undefined') {
+        PRECACHE_URLS.push(...OFFLINE_TILES_LIST);
+    }
+} catch (e) {
+    console.warn("Offline tiles list not available yet.");
+}
 
 self.addEventListener('install', event => {
     // Skip waiting ensures the new service worker takes over immediately

@@ -57,3 +57,6 @@ $jsContent += "`n$equipesJs"
 
 # Save the final JS file
 Set-Content -Path $outputFile -Value $jsContent -Encoding UTF8
+
+Write-Host "Atualizando mapa base offline..."
+python generate_offline_basemap.py
