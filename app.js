@@ -226,9 +226,10 @@ document.addEventListener('DOMContentLoaded', () => {
     map.on('moveend', debouncedUpdateLabelVisibility);
 
     // 2. Map Base Layers Setup
-    const satelliteLayer = L.tileLayer('https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
-        attribution: '&copy; Esri World Imagery',
-        maxZoom: 19
+    const satelliteLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+        maxZoom: 19,
+        zIndex: 1,
+        attribution: 'Tiles &copy; Esri'
     });
 
     const labelsLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager_only_labels/{z}/{x}/{y}{r}.png', {
@@ -242,7 +243,7 @@ document.addEventListener('DOMContentLoaded', () => {
         maxZoom: 19
     });
 
-    const satelliteGroup = L.layerGroup([satelliteLayer, labelsLayer]).addTo(map);
+    // const satelliteGroup = L.layerGroup([satelliteLayer, labelsLayer]).addTo(map); // Will be created later
 
     // 2.5 Offline Basemap Setup
     // 2. Offline Satellite Layer (ImageOverlays in a LayerGroup)
@@ -252,11 +253,15 @@ document.addEventListener('DOMContentLoaded', () => {
         OFFLINE_IMAGES_CONFIG.forEach(item => {
             L.imageOverlay(item.url, item.bounds, {
                 opacity: 1,
-                interactive: false, // Prevent clicks from being intercepted
+                interactive: false,
+                pane: 'tilePane', // Put below online tiles
                 zIndex: 0
             }).addTo(offlineSatelliteLayer);
         });
     }
+
+    // Add everything to satelliteGroup so offline images act as an automatic fallback underneath
+    const satelliteGroup = L.layerGroup([offlineSatelliteLayer, satelliteLayer, labelsLayer]).addTo(map);
 
     // 3. Basemap Selector Toggle Logic
     const satBtn = document.getElementById('basemap-sat');

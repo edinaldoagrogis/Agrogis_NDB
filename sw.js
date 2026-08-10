@@ -1,4 +1,4 @@
-const CACHE_NAME = 'agrogis-v60';
+const CACHE_NAME = 'agrogis-v61';
 
 // Core assets to pre-cache when the Service Worker installs
 try {
@@ -70,7 +70,7 @@ self.addEventListener('fetch', event => {
     const url = new URL(event.request.url);
 
     // Cache-First Strategy para as fatias do mapa offline (extrema fluidez)
-    if (url.pathname.includes('/offline_tiles/')) {
+    if (url.pathname.includes('/offline_images/')) {
         event.respondWith(
             caches.match(event.request).then(cachedResponse => {
                 if (cachedResponse) {

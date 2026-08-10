@@ -1,3 +1,3 @@
-2026/08/10-20:34:24.014 6218 Reusing MANIFEST C:\Users\EDINALDO\Documents\GEOPORTAL_NDB_002\backend\edge_profile\Default\Local Storage\leveldb/MANIFEST-000001
-2026/08/10-20:34:24.020 6218 Recovering log #4
-2026/08/10-20:34:24.022 6218 Reusing old log C:\Users\EDINALDO\Documents\GEOPORTAL_NDB_002\backend\edge_profile\Default\Local Storage\leveldb/000004.log 
+2026/08/10-20:44:49.362 3924 Reusing MANIFEST C:\Users\EDINALDO\Documents\GEOPORTAL_NDB_002\backend\edge_profile\Default\Local Storage\leveldb/MANIFEST-000001
+2026/08/10-20:44:49.370 3924 Recovering log #4
+2026/08/10-20:44:49.429 3924 Reusing old log C:\Users\EDINALDO\Documents\GEOPORTAL_NDB_002\backend\edge_profile\Default\Local Storage\leveldb/000004.log 
