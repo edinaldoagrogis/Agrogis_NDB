@@ -1,4 +1,4 @@
-const CACHE_NAME = 'agrogis-v51';
+const CACHE_NAME = 'agrogis-v52';
 
 // Core assets to pre-cache when the Service Worker installs
 try {
@@ -38,18 +38,7 @@ self.addEventListener('install', event => {
                 await Promise.allSettled(
                     coreAssets.map(url => fetch(url).then(r => { if(r.ok) return cache.put(url, r); }))
                 );
-
-                // 2. Array de tiles (se existir) baixado em lotes controlados
-                if (typeof OFFLINE_TILES_LIST !== 'undefined') {
-                    console.log(`[ServiceWorker] Pre-caching ${OFFLINE_TILES_LIST.length} tiles in batches`);
-                    const batchSize = 25; // Baixar 25 por vez para não esgotar as conexões do celular
-                    for (let i = 0; i < OFFLINE_TILES_LIST.length; i += batchSize) {
-                        const batch = OFFLINE_TILES_LIST.slice(i, i + batchSize);
-                        await Promise.allSettled(
-                            batch.map(url => fetch(url).then(r => { if(r.ok) return cache.put(url, r); }).catch(() => {}))
-                        );
-                    }
-                }
+                // Tile caching is now handled by the SYNC_TILES message from the client
                 console.log('[ServiceWorker] Install complete');
             })
     );
@@ -98,9 +87,58 @@ self.addEventListener('fetch', event => {
                         return cachedResponse;
                     }
                     // If it's not in the cache either, we just fail gracefully.
-                    // For HTML requests, we could return a custom offline page here.
-                    console.log('[ServiceWorker] Request not found in cache for:', event.request.url);
+                    return new Response('', { status: 404, statusText: 'Offline' });
                 });
             })
     );
+});
+
+self.addEventListener('message', async (event) => {
+    if (event.data && event.data.type === 'SYNC_TILES') {
+        if (typeof OFFLINE_TILES_LIST === 'undefined') return;
+        
+        try {
+            const cache = await caches.open(CACHE_NAME);
+            let missingTiles = [];
+            
+            // Find missing tiles
+            for (const url of OFFLINE_TILES_LIST) {
+                const cached = await cache.match(url);
+                if (!cached) missingTiles.push(url);
+            }
+            
+            const total = OFFLINE_TILES_LIST.length;
+            let downloaded = total - missingTiles.length;
+            
+            if (missingTiles.length === 0) {
+                // Already synced
+                event.source.postMessage({ type: 'SYNC_PROGRESS', downloaded, total, done: true });
+                return;
+            }
+
+            // Notify start
+            event.source.postMessage({ type: 'SYNC_PROGRESS', downloaded, total, done: false });
+            
+            const batchSize = 10; // 10 at a time for stable background sync
+            for (let i = 0; i < missingTiles.length; i += batchSize) {
+                const batch = missingTiles.slice(i, i + batchSize);
+                await Promise.allSettled(
+                    batch.map(url => fetch(url).then(r => {
+                        if (r.ok) {
+                            return cache.put(url, r).then(() => {
+                                downloaded++;
+                                // Send progress back to the page
+                                event.source.postMessage({ type: 'SYNC_PROGRESS', downloaded, total, done: false });
+                            });
+                        }
+                    }).catch(() => {}))
+                );
+            }
+            
+            // Notify done
+            event.source.postMessage({ type: 'SYNC_PROGRESS', downloaded, total, done: true });
+        } catch (e) {
+            console.error('[ServiceWorker] Sync error:', e);
+        }
+    }
 });

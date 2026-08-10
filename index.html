@@ -735,5 +735,12 @@
             });
         }
     </script>
+    <div id="offline-sync-container" style="display: none; position: fixed; top: 15px; left: 50%; transform: translateX(-50%); z-index: 10000; background: var(--bg-secondary); padding: 10px 20px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.1); backdrop-filter: blur(10px); color: white; font-size: 13px; font-weight: 500; box-shadow: 0 4px 15px rgba(0,0,0,0.5); align-items: center; gap: 10px;">
+        <div class="sync-spinner" style="width: 14px; height: 14px; border: 2px solid rgba(255,255,255,0.3); border-top-color: #e85d04; border-radius: 50%; animation: spin 1s linear infinite;"></div>
+        <span id="offline-sync-text">Baixando mapa offline: 0%</span>
+    </div>
+    <style>
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+    </style>
 </body>
 </html>
