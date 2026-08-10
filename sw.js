@@ -1,4 +1,4 @@
-const CACHE_NAME = 'agrogis-v50';
+const CACHE_NAME = 'agrogis-v51';
 
 // Core assets to pre-cache when the Service Worker installs
 try {
@@ -36,7 +36,7 @@ self.addEventListener('install', event => {
                 ];
                 
                 await Promise.allSettled(
-                    coreAssets.map(url => fetch(url).then(r => { if(r.ok) cache.put(url, r); }))
+                    coreAssets.map(url => fetch(url).then(r => { if(r.ok) return cache.put(url, r); }))
                 );
 
                 // 2. Array de tiles (se existir) baixado em lotes controlados
@@ -46,7 +46,7 @@ self.addEventListener('install', event => {
                     for (let i = 0; i < OFFLINE_TILES_LIST.length; i += batchSize) {
                         const batch = OFFLINE_TILES_LIST.slice(i, i + batchSize);
                         await Promise.allSettled(
-                            batch.map(url => fetch(url).then(r => { if(r.ok) cache.put(url, r); }).catch(() => {}))
+                            batch.map(url => fetch(url).then(r => { if(r.ok) return cache.put(url, r); }).catch(() => {}))
                         );
                     }
                 }
