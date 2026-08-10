@@ -1,10 +1,10 @@
-const CACHE_NAME = 'agrogis-v54';
+const CACHE_NAME = 'agrogis-v60';
 
 // Core assets to pre-cache when the Service Worker installs
 try {
-    importScripts('./offline_tiles_list.js');
+    importScripts('./offline_images_config.js');
 } catch (e) {
-    console.warn("Offline tiles list not available yet.");
+    console.warn('[ServiceWorker] offline_images_config.js not found, skipping pre-cache list.');
 }
 
 self.addEventListener('install', event => {
@@ -35,10 +35,14 @@ self.addEventListener('install', event => {
                     'https://unpkg.com/leaflet-rotate@0.2.8/dist/leaflet-rotate.js'
                 ];
                 
+                if (typeof OFFLINE_IMAGES_CONFIG !== 'undefined') {
+                    const imageAssets = OFFLINE_IMAGES_CONFIG.map(item => item.url);
+                    coreAssets = coreAssets.concat(imageAssets);
+                }
+
                 await Promise.allSettled(
                     coreAssets.map(url => fetch(url).then(r => { if(r.ok) return cache.put(url, r); }))
                 );
-                // Tile caching is now handled by the SYNC_TILES message from the client
                 console.log('[ServiceWorker] Install complete');
             })
     );
@@ -119,52 +123,4 @@ self.addEventListener('fetch', event => {
     );
 });
 
-self.addEventListener('message', async (event) => {
-    if (event.data && event.data.type === 'SYNC_TILES') {
-        if (typeof OFFLINE_TILES_LIST === 'undefined') return;
-        
-        try {
-            const cache = await caches.open(CACHE_NAME);
-            let missingTiles = [];
-            
-            // Find missing tiles
-            for (const url of OFFLINE_TILES_LIST) {
-                const cached = await cache.match(url);
-                if (!cached) missingTiles.push(url);
-            }
-            
-            const total = OFFLINE_TILES_LIST.length;
-            let downloaded = total - missingTiles.length;
-            
-            if (missingTiles.length === 0) {
-                // Already synced
-                event.source.postMessage({ type: 'SYNC_PROGRESS', downloaded, total, done: true });
-                return;
-            }
-
-            // Notify start
-            event.source.postMessage({ type: 'SYNC_PROGRESS', downloaded, total, done: false });
-            
-            const batchSize = 10; // 10 at a time for stable background sync
-            for (let i = 0; i < missingTiles.length; i += batchSize) {
-                const batch = missingTiles.slice(i, i + batchSize);
-                await Promise.allSettled(
-                    batch.map(url => fetch(url).then(r => {
-                        if (r.ok) {
-                            return cache.put(url, r).then(() => {
-                                downloaded++;
-                                // Send progress back to the page
-                                event.source.postMessage({ type: 'SYNC_PROGRESS', downloaded, total, done: false });
-                            });
-                        }
-                    }).catch(() => {}))
-                );
-            }
-            
-            // Notify done
-            event.source.postMessage({ type: 'SYNC_PROGRESS', downloaded, total, done: true });
-        } catch (e) {
-            console.error('[ServiceWorker] Sync error:', e);
-        }
-    }
-});
+// Sincronização em background removida, pois as 25 imagens estáticas são baixadas no install event

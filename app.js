@@ -245,16 +245,18 @@ document.addEventListener('DOMContentLoaded', () => {
     const satelliteGroup = L.layerGroup([satelliteLayer, labelsLayer]).addTo(map);
 
     // 2.5 Offline Basemap Setup
-    let offlineSatelliteLayer = L.tileLayer('offline_tiles/{z}/{x}/{y}.jpg', {
-        minZoom: 10,
-        maxZoom: 19,
-        maxNativeZoom: 15,
-        zIndex: 0,
-        keepBuffer: 6,
-        updateWhenIdle: false,
-        updateWhenZooming: false,
-        errorTileUrl: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII='
-    });
+    // 2. Offline Satellite Layer (ImageOverlays in a LayerGroup)
+    let offlineSatelliteLayer = L.layerGroup();
+    
+    if (typeof OFFLINE_IMAGES_CONFIG !== 'undefined') {
+        OFFLINE_IMAGES_CONFIG.forEach(item => {
+            L.imageOverlay(item.url, item.bounds, {
+                opacity: 1,
+                interactive: false, // Prevent clicks from being intercepted
+                zIndex: 0
+            }).addTo(offlineSatelliteLayer);
+        });
+    }
 
     // 3. Basemap Selector Toggle Logic
     const satBtn = document.getElementById('basemap-sat');

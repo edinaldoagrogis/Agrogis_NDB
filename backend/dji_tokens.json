@@ -1,0 +1,24 @@
+{
+    "localStorage": {
+        "agro-lang": "en",
+        "agro-region": "default",
+        "clear": {},
+        "dji_intercepted_data": "[{\"url\":\"https://tk-dji-ag-kr-prod.oss-ap-northeast-1.aliyuncs.com/27f59d22-acdf-4a9d-b53e-03f72265f9a4?Expires=1786423377&OSSAccessKeyId=LTAI4FbyPUBchdA9qiGETFqt&Signature=HSmoZyoyw%2Bks3XDBJ9vgiaU8z9I%3D\",\"data\":\"{\\\"type\\\":\\\"FeatureCollection\\\",\\\"features\\\":[{\\\"type\\\":\\\"Feature\\\",\\\"geometry\\\":{\\\"type\\\":\\\"Polygon\\\",\\\"coordinates\\\":[[[-39.93910361463258,-18.44635358595867,0],[-39.936164528402365,-18.448430739450195,0],[-39.93556383924584,-18.447962363895613,0],[-39.93498460327346,-18.44889911372752,0],[-39.93423374182778,-18.449754402590212,0],[-39.9333756144613,-18.44971367464573,0],[-39.93185243838579,-18.449367486727574,0],[-39.932453127542324,-18.444032031743728,0],[-39.93564965198249,-18.442117744142365,0],[-39.93910361463258,-18.44635358595867,0]]]},\\\"properties\\\":{\\\"funcType\\\":\\\"PlantZone\\\",\\\"parameters\\\":{\\\"offset\\\":[]}}},{\\\"type\\\":\\\"Feature\\\",\\\"geometry\\\":{\\\"type\\\":\\\"MultiPoint\\\",\\\"coordinates\\\":[]},\\\"properties\\\":{\\\"funcType\\\":\\\"ReferencePoint\\\"}}]}\"}]",
+        "getItem": {},
+        "key": {},
+        "length": 5,
+        "removeItem": {},
+        "setItem": {},
+        "theme": "default",
+        "x-auth-token": "eyJhbGciOiJIUzM4NCJ9.eyJzdWIiOiIyMDg2OTMzMzI0MzI3ODQxNzkyLHNtYXJ0ZmFybSwxNzg2NDAxNzY5MTkxLFVTX2FPd0xMZGdOZU9Nd2s1SWEtYjhzVkw3NTViaVJBMzFnbnVPaVFjRTdvVnNaRkNzVnFBWUZPVjl5YzNSY3h3VlRCM09SVm9pM2FSUjBnM2VNNHd6OE5scW1abXpKTTNiX2oxSlBqdlhjbVZQSE1sVk8wYk9mQm9DUVcxWlpfUDBNX1NoNzh0RGpiTzcyemFndkRqWnJEZyIsImlzcyI6ImF1dGguZGppYWcuY29tIiwiaWF0IjoxNzg2NDAxNzY5LCJleHAiOjE4MTc5Mzc3Njl9.EFFBOpE-xleth9V_DwFTHQfwaPORYUWc9WRkI2ZImmAdb5Ijt-qv8NB5N4dyib3h"
+    },
+    "sessionStorage": {
+        "clear": {},
+        "getItem": {},
+        "key": {},
+        "length": 0,
+        "removeItem": {},
+        "setItem": {}
+    },
+    "cookies": []
+}

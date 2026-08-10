@@ -395,9 +395,23 @@ async def health_check():
 
 
 # ─── DJI & XAG Endpoints ─────────────────────────────────────────
+
+# TODO: Preencha aqui o e-mail e a senha do robô quando a conta for criada!
+DJI_ROBOT_EMAIL = "geoportal.ndb@gmail.com"
+DJI_ROBOT_PASSWORD = "AGROGIS_NDB"
+
 @app.get("/api/dji/shared-fields")
 async def get_dji_shared_fields():
-    return [{"id": "task1", "name": "TESTE 01 - SmartFarm", "area_ha": 16.26, "date": "2026-08-10"}]
+    if DJI_ROBOT_EMAIL and DJI_ROBOT_PASSWORD:
+        try:
+            from scraper import DJISmartFarmScraper
+            scraper = DJISmartFarmScraper(headless=False) # Para testar visualmente
+            return scraper.get_shared_fields(DJI_ROBOT_EMAIL, DJI_ROBOT_PASSWORD)
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=str(e))
+    else:
+        # Modo mock se não tiver senha
+        return [{"id": "task1", "name": "TESTE 01 - SmartFarm (Simulado)", "area_ha": 16.26, "date": "2026-08-10"}]
 
 
 class DjiToXagRequest(BaseModel):
@@ -406,15 +420,34 @@ class DjiToXagRequest(BaseModel):
 @app.post("/convert/dji-to-xag")
 async def convert_dji_to_xag(req: DjiToXagRequest):
     import geopandas as gpd
-    from shapely.geometry import Polygon
-
-    # Dummy geometry: a simple square polygon
-    poly = Polygon([(0, 0), (0, 1), (1, 1), (1, 0), (0, 0)])
     
-    # Load into GeoPandas
-    gdf = gpd.GeoDataFrame(index=[0], crs="EPSG:4326", geometry=[poly])
+    # Ler o GeoJSON capturado pelo interceptador
+    geojson_path = "dji_latest_geojson.json"
+    if not os.path.exists(geojson_path):
+        raise HTTPException(status_code=404, detail="Nenhum mapa capturado recentemente. Sincronize novamente.")
+        
+    with open(geojson_path, "r", encoding="utf-8") as f:
+        dji_data = json.load(f)
+        
+    # Extrair as features do tipo Polygon (Geralmente PlantZone)
+    features = [feat for feat in dji_data.get('features', []) if feat.get('geometry') and feat['geometry']['type'] == 'Polygon']
+    if not features:
+        features = dji_data.get('features', [])
+        
+    if not features:
+        raise HTTPException(status_code=400, detail="O arquivo interceptado não contém polígonos válidos.")
+        
+    # Criar o GeoDataFrame
+    gdf = gpd.GeoDataFrame.from_features(features, crs="EPSG:4326")
     
-    # Add XAG specific columns
+    # Forçar geometria 2D (remover Z) para compatibilidade com o formato Shapefile
+    try:
+        from shapely import force_2d
+        gdf['geometry'] = gdf['geometry'].apply(lambda geom: force_2d(geom) if geom else geom)
+    except ImportError:
+        pass
+    
+    # Adicionar colunas obrigatórias XAG
     gdf["Rate"] = 10.0
     gdf["Type"] = "Weed"
     gdf["ID"] = req.id
