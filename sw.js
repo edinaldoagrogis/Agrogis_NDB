@@ -1,4 +1,4 @@
-const CACHE_NAME = 'agrogis-v52';
+const CACHE_NAME = 'agrogis-v53';
 
 // Core assets to pre-cache when the Service Worker installs
 try {
@@ -63,7 +63,33 @@ self.addEventListener('fetch', event => {
     // We only want to handle GET requests
     if (event.request.method !== 'GET') return;
 
-    // Network-First Strategy
+    const url = new URL(event.request.url);
+
+    // Cache-First Strategy para as fatias do mapa offline (extrema fluidez)
+    if (url.pathname.includes('/offline_tiles/')) {
+        event.respondWith(
+            caches.match(event.request).then(cachedResponse => {
+                if (cachedResponse) {
+                    return cachedResponse; // Retorna imediatamente do celular, zero delay
+                }
+                // Se não estiver no cache (ainda baixando), tenta a rede
+                return fetch(event.request).then(response => {
+                    if (response && response.status === 200) {
+                        const responseToCache = response.clone();
+                        caches.open(CACHE_NAME).then(cache => {
+                            cache.put(event.request, responseToCache);
+                        });
+                    }
+                    return response;
+                }).catch(() => {
+                    return new Response('', { status: 404, statusText: 'Offline' });
+                });
+            })
+        );
+        return;
+    }
+
+    // Network-First Strategy para o resto (código, interface, atualizações)
     event.respondWith(
         fetch(event.request)
             .then(response => {
