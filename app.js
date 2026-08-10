@@ -2821,3 +2821,193 @@ if ('serviceWorker' in navigator) {
     });
 }
 
+// ----------------------------------------------------
+// INTEGRAÇÃO DJI SMARTFARM -> XAG
+// ----------------------------------------------------
+(function initDJIIntegration() {
+    const btnDjiTool = document.getElementById('tool-dji-btn');
+    const panelDji = document.getElementById('dji-integration-panel');
+    const btnCloseDji = document.getElementById('dji-panel-close');
+    const btnSyncDji = document.getElementById('btn-dji-sync');
+    const listContainer = document.getElementById('dji-map-list-container');
+    const mapList = document.getElementById('dji-map-list');
+    const actionArea = document.getElementById('dji-action-area');
+    const selectedMapName = document.getElementById('dji-selected-map-name');
+    const btnConvertXag = document.getElementById('btn-dji-convert-xag');
+    const statusMsg = document.getElementById('dji-status-msg');
+
+    let djiTempLayer = null;
+    let selectedTaskId = null;
+
+    if (!btnDjiTool || !panelDji) return;
+
+    // Abrir o painel
+    btnDjiTool.addEventListener('click', () => {
+        panelDji.style.display = 'block';
+        const toolsPanel = document.getElementById('floating-tools-panel');
+        if (toolsPanel) toolsPanel.style.display = 'none';
+        resetDJIPanel();
+    });
+
+    // Fechar o painel
+    btnCloseDji.addEventListener('click', () => {
+        panelDji.style.display = 'none';
+        clearDJITempLayer();
+    });
+
+    function showStatus(msg, isError = false) {
+        statusMsg.style.display = 'block';
+        statusMsg.innerHTML = msg;
+        statusMsg.style.color = isError ? '#ff4d4d' : '#ff9f1c';
+        statusMsg.style.borderColor = isError ? '#ff4d4d' : '#ff9f1c';
+        statusMsg.style.backgroundColor = isError ? 'rgba(255,0,0,0.1)' : 'rgba(255,159,28,0.08)';
+    }
+
+    function hideStatus() {
+        statusMsg.style.display = 'none';
+    }
+
+    function clearDJITempLayer() {
+        if (djiTempLayer && map) {
+            map.removeLayer(djiTempLayer);
+            djiTempLayer = null;
+        }
+    }
+
+    function resetDJIPanel() {
+        listContainer.style.display = 'none';
+        actionArea.style.display = 'none';
+        mapList.innerHTML = '';
+        selectedTaskId = null;
+        hideStatus();
+        clearDJITempLayer();
+    }
+
+    // Sincronizar Mapas da DJI (Bate no Mock Backend)
+    btnSyncDji.addEventListener('click', async () => {
+        resetDJIPanel();
+        showStatus('⏳ Sincronizando com a conta robô da DJI...');
+        
+        try {
+            const baseUrl = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' 
+                ? 'http://localhost:8000' 
+                : 'http://localhost:8000';
+
+            const response = await fetch(`${baseUrl}/api/dji/shared-fields`);
+            if (!response.ok) throw new Error('Falha ao comunicar com o servidor');
+            
+            const data = await response.json();
+            
+            if (!data || data.length === 0) {
+                showStatus('Nenhum mapa novo foi compartilhado com a conta robô recentemente.');
+                return;
+            }
+
+            hideStatus();
+            listContainer.style.display = 'block';
+            
+            data.forEach(task => {
+                const btn = document.createElement('button');
+                btn.style.cssText = `
+                    padding: 10px; border-radius: 8px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); 
+                    color: #fff; text-align: left; cursor: pointer; transition: 0.2s;
+                `;
+                btn.innerHTML = `
+                    <div style="font-size: 13px; font-weight: 600; color: #00ff66;">${task.name}</div>
+                    <div style="font-size: 11px; color: rgba(255,255,255,0.5); margin-top: 4px;">Área: ${task.area_ha} ha | Data: ${task.date}</div>
+                `;
+                
+                btn.onmouseover = () => btn.style.background = 'rgba(255,255,255,0.1)';
+                btn.onmouseout = () => { if (selectedTaskId !== task.id) btn.style.background = 'rgba(255,255,255,0.05)'; };
+                
+                btn.onclick = () => {
+                    Array.from(mapList.children).forEach(c => {
+                        c.style.background = 'rgba(255,255,255,0.05)';
+                        c.style.borderColor = 'rgba(255,255,255,0.1)';
+                    });
+                    
+                    btn.style.background = 'rgba(0,255,100,0.1)';
+                    btn.style.borderColor = '#00ff66';
+                    
+                    selectedTaskId = task.id;
+                    selectedMapName.innerText = `Selecionado: ${task.name}`;
+                    actionArea.style.display = 'block';
+                    
+                    clearDJITempLayer();
+                    
+                    const center = map.getCenter();
+                    const offset = 0.005;
+                    const dummyGeojson = {
+                        "type": "FeatureCollection",
+                        "features": [{
+                            "type": "Feature",
+                            "properties": {"name": task.name},
+                            "geometry": {
+                                "type": "Polygon",
+                                "coordinates": [[[center.lng - offset, center.lat - offset], [center.lng + offset, center.lat - offset], [center.lng + offset, center.lat + offset], [center.lng - offset, center.lat + offset], [center.lng - offset, center.lat - offset]]]
+                            }
+                        }]
+                    };
+                    
+                    djiTempLayer = L.geoJSON(dummyGeojson, {
+                        style: { color: '#00ff66', weight: 3, fillColor: '#00ff66', fillOpacity: 0.2 }
+                    }).addTo(map);
+                    
+                    map.fitBounds(djiTempLayer.getBounds(), { padding: [50, 50] });
+                };
+                
+                mapList.appendChild(btn);
+            });
+
+        } catch (error) {
+            console.error('Erro API DJI:', error);
+            showStatus('⚠️ Servidor local offline ou erro na API. Verifique se o backend está rodando na porta 8000.', true);
+        }
+    });
+
+    // Baixar o Shapefile convertido para XAG
+    btnConvertXag.addEventListener('click', async () => {
+        if (!selectedTaskId) return;
+        
+        btnConvertXag.innerHTML = '⏳ Gerando Shapefile...';
+        btnConvertXag.disabled = true;
+
+        try {
+            const baseUrl = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' 
+                ? 'http://localhost:8000' 
+                : 'http://localhost:8000';
+
+            const response = await fetch(`${baseUrl}/convert/dji-to-xag`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id: selectedTaskId })
+            });
+
+            if (!response.ok) throw new Error('Erro ao converter arquivo.');
+
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.style.display = 'none';
+            a.href = url;
+            a.download = `XAG_MAP_${selectedTaskId}.zip`;
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            
+            showStatus('<span style="color:#00ff66">✅ Arquivo baixado com sucesso!</span>');
+            
+            setTimeout(() => {
+                clearDJITempLayer();
+                actionArea.style.display = 'none';
+            }, 3000);
+
+        } catch (error) {
+            console.error('Erro conversão:', error);
+            showStatus('⚠️ Falha ao gerar o arquivo Shapefile.', true);
+        } finally {
+            btnConvertXag.innerHTML = '📥 Baixar Shapefile (XAG)';
+            btnConvertXag.disabled = false;
+        }
+    });
+})();

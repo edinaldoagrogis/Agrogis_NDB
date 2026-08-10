@@ -9,6 +9,9 @@ import io
 import json
 import math
 import warnings
+import zipfile
+import os
+import tempfile
 from datetime import datetime, timedelta, timezone
 from typing import Any, Dict, List, Optional
 
@@ -16,7 +19,7 @@ import numpy as np
 import requests
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, StreamingResponse
 from pydantic import BaseModel
 from shapely.geometry import mapping, shape
 from shapely.ops import transform
@@ -389,6 +392,53 @@ async def analyze_talhao(req: TalhaoRequest):
 @app.get("/health")
 async def health_check():
     return {"status": "online", "service": "GeoPortal NDB — Detecção de Infestação"}
+
+
+# ─── DJI & XAG Endpoints ─────────────────────────────────────────
+@app.get("/api/dji/shared-fields")
+async def get_dji_shared_fields():
+    return [{"id": "task1", "name": "TESTE 01 - SmartFarm", "area_ha": 16.26, "date": "2026-08-10"}]
+
+
+class DjiToXagRequest(BaseModel):
+    id: str
+
+@app.post("/convert/dji-to-xag")
+async def convert_dji_to_xag(req: DjiToXagRequest):
+    import geopandas as gpd
+    from shapely.geometry import Polygon
+
+    # Dummy geometry: a simple square polygon
+    poly = Polygon([(0, 0), (0, 1), (1, 1), (1, 0), (0, 0)])
+    
+    # Load into GeoPandas
+    gdf = gpd.GeoDataFrame(index=[0], crs="EPSG:4326", geometry=[poly])
+    
+    # Add XAG specific columns
+    gdf["Rate"] = 10.0
+    gdf["Type"] = "Weed"
+    gdf["ID"] = req.id
+    
+    # Write to in-memory ZIP
+    zip_buffer = io.BytesIO()
+    with zipfile.ZipFile(zip_buffer, "w", zipfile.ZIP_DEFLATED) as zf:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            shp_path = os.path.join(tmpdir, "xag_map.shp")
+            gdf.to_file(shp_path, driver="ESRI Shapefile")
+            
+            # Read files and write to zip
+            for ext in [".shp", ".shx", ".dbf", ".prj", ".cpg"]:
+                file_path = os.path.join(tmpdir, f"xag_map{ext}")
+                if os.path.exists(file_path):
+                    zf.write(file_path, arcname=f"xag_map{ext}")
+                    
+    zip_buffer.seek(0)
+    return StreamingResponse(
+        zip_buffer, 
+        media_type="application/zip", 
+        headers={"Content-Disposition": "attachment; filename=xag_map.zip"}
+    )
+
 
 
 # ─── Inicialização ───────────────────────────────────────────────

@@ -5,7 +5,7 @@ import os
 import concurrent.futures
 
 # CONFIGURATION
-ZOOM_LEVELS = [11, 13, 14, 15]  # Gerar zoom até 15 para alta resolução
+ZOOM_LEVELS = [10, 11, 12, 13, 14, 15]  # Gerar zoom 10 ao 15 para evitar buracos (telas pretas)
 GEOJSON_FILE = 'TALHOES.geojson'
 OUTPUT_DIR = 'offline_tiles'
 OUTPUT_JS = 'offline_tiles_list.js'
