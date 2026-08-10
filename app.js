@@ -2806,7 +2806,7 @@ if ('serviceWorker' in navigator) {
             } else {
                 container.style.display = 'flex';
                 const percent = Math.round((event.data.downloaded / event.data.total) * 100);
-                textElem.innerText = \Baixando mapa offline: \%\;
+                textElem.innerText = `Baixando mapa offline: ${percent}%`;
             }
         }
     });
