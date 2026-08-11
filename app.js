@@ -399,8 +399,8 @@ document.addEventListener('DOMContentLoaded', () => {
             const isFazenda = layerName.toUpperCase().includes('FAZENDA');
             const isTalhao = layerName.toUpperCase().includes('TALHO');
             
-            // EXCLUI CAMADA DE VARIEDADE (Ignora no carregamento)
-            if (layerName.toUpperCase().includes('VARIEDADE')) {
+            // EXCLUI CAMADA DE VARIEDADE E ROTAS (Ignora no carregamento dinâmico)
+            if (layerName.toUpperCase().includes('VARIEDADE') || layerName.toUpperCase().includes('ROTAS')) {
                 continue;
             }
 
