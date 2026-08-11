@@ -27,9 +27,9 @@ def meters_to_latlon(x, y):
     lat = 180 / math.pi * (2 * math.atan(math.exp(y_deg * math.pi / 180)) - math.pi / 2)
     return lat, lon
 
-def get_export_url(min_x, min_y, max_x, max_y):
+def get_export_url(min_x, min_y, max_x, max_y, width, height):
     # Send request completely in Web Mercator (3857) to avoid any reprojection bounding-box distortion by ArcGIS
-    return f"https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/export?bbox={min_x},{min_y},{max_x},{max_y}&bboxSR=3857&size={IMAGE_SIZE},{IMAGE_SIZE}&imageSR=3857&format=jpg&f=image"
+    return f"https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/export?bbox={min_x},{min_y},{max_x},{max_y}&bboxSR=3857&size={width},{height}&imageSR=3857&format=jpg&f=image"
 
 def process_coords(coords, bounds):
     if not coords: return
@@ -91,6 +91,16 @@ def main():
     x_step = (max_x - min_x) / GRID_COLS
     y_step = (max_y - min_y) / GRID_ROWS
     
+    # Calculate exact pixel dimensions for each cell to prevent ArcGIS from altering the bounding box to fix aspect ratio
+    if x_step > y_step:
+        img_w = IMAGE_SIZE
+        img_h = int(IMAGE_SIZE * (y_step / x_step))
+    else:
+        img_h = IMAGE_SIZE
+        img_w = int(IMAGE_SIZE * (x_step / y_step))
+    
+    print(f"Cell Size: {x_step}m x {y_step}m")
+    print(f"Image Resolution: {img_w}x{img_h} pixels")
     print(f"Baixando {GRID_COLS * GRID_ROWS} imagens em grid...")
     
     config_items = []
@@ -114,7 +124,7 @@ def main():
             filename = f"part_{col}_{row}.jpg"
             filepath = os.path.join(OUTPUT_DIR, filename)
             
-            url = get_export_url(cell_min_x, cell_min_y, cell_max_x, cell_max_y)
+            url = get_export_url(cell_min_x, cell_min_y, cell_max_x, cell_max_y, img_w, img_h)
             
             tasks.append((url, filepath))
             config_items.append({
