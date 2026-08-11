@@ -7,11 +7,77 @@ document.addEventListener('DOMContentLoaded', () => {
     const map = L.map('map', {
         zoomControl: true,
         attributionControl: true,
-        preferCanvas: true // Back on: 100x speed for polygons (GPS freeze fixed)
+        preferCanvas: true, // Back on: 100x speed for polygons (GPS freeze fixed)
+        rotate: isTouchDevice,
+        touchRotate: false // Disabled by default, toggled by compass
     }).setView([-17.8, -40.0], 7);
     window.map = map; // Expose globally for modules
     
+    // Custom Compass Control (Rotation Toggle)
+    const CompassControl = L.Control.extend({
+        options: { position: 'bottomright' },
+        onAdd: function(map) {
+            const container = L.DomUtil.create('div', 'leaflet-bar leaflet-control');
+            container.style.backgroundColor = 'var(--bg-secondary)';
+            container.style.border = '1px solid rgba(255,255,255,0.1)';
+            container.style.width = '44px';
+            container.style.height = '44px';
+            container.style.display = 'flex';
+            container.style.justifyContent = 'center';
+            container.style.alignItems = 'center';
+            container.style.cursor = 'pointer';
+            container.style.borderRadius = '12px';
+            container.style.marginBottom = '10px';
+            container.style.marginRight = '10px';
+            container.style.backdropFilter = 'blur(12px)';
+            container.id = 'btn-compass-control';
+            container.title = 'Habilitar/Desabilitar Rotação Livre';
+
+            const icon = L.DomUtil.create('div', '', container);
+            icon.innerHTML = '🧭';
+            icon.style.fontSize = '24px';
+            icon.style.transition = 'opacity 0.2s';
+            icon.style.opacity = '0.5'; // Default locked state (greyed out)
+            
+            let isUnlocked = false;
+            let rafId = null;
+
+            if (typeof map.getBearing === 'function') {
+                map.on('rotate', function() {
+                    if (rafId) cancelAnimationFrame(rafId);
+                    rafId = requestAnimationFrame(() => {
+                        const bearing = map.getBearing();
+                        icon.style.transform = `rotate(${bearing}deg) translateZ(0)`;
+                    });
+                });
+            }
+
+            container.onclick = function(e) {
+                L.DomEvent.stopPropagation(e);
+                isUnlocked = !isUnlocked;
+                
+                if (isUnlocked) {
+                    if (map.touchRotate) map.touchRotate.enable();
+                    container.classList.add('is-active-compass');
+                    icon.style.opacity = '1';
+                    container.style.borderColor = '#e85d04';
+                    container.style.boxShadow = '0 0 10px rgba(232,93,4,0.3)';
+                } else {
+                    if (map.touchRotate) map.touchRotate.disable();
+                    if (typeof map.setBearing === 'function') map.setBearing(0);
+                    container.classList.remove('is-active-compass');
+                    icon.style.opacity = '0.5';
+                    container.style.borderColor = 'rgba(255,255,255,0.1)';
+                    container.style.boxShadow = 'none';
+                }
+            };
+            return container;
+        }
+    });
     
+    if (isTouchDevice) {
+        map.addControl(new CompassControl());
+    }
     
     // Fix map rendering bug on mobile
     setTimeout(() => { map.invalidateSize(); }, 500);

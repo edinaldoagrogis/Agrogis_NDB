@@ -8,8 +8,7 @@
     <!-- PWA Manifest & Icons -->
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#e85d04">
-    <link rel="apple-touch-icon" href="ndb_logo.png">
-    <link rel="icon" type="image/png" href="ndb_logo.png">
+    <link rel="apple-touch-icon" href="icone_drone.png.png">
     
     <!-- Google Fonts: Inter -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -71,7 +70,7 @@
     <!-- Login Overlay -->
     <div id="login-overlay" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #111418; z-index: 9999; display: flex; justify-content: center; align-items: center; flex-direction: column;">
         <div class="login-container" style="background: rgba(255,255,255,0.03); padding: 40px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05); text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.5); width: 320px;">
-            <img src="ndb_logo.png" alt="AGROGIS Logo" style="width: 180px; margin-bottom: 30px; border-radius: 20px;">
+            <img src="logo.png.jpg" alt="AGROGIS Logo" style="width: 250px; margin-bottom: 30px; mix-blend-mode: screen;">
             
             <form id="login-form" style="width: 100%; position: relative;">
                 <input type="text" id="login-username" autocomplete="username" placeholder="Usuário (ndb_mapa)" style="width: 100%; padding: 12px 15px; margin-bottom: 15px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.2); color: #fff; font-size: 14px; box-sizing: border-box; outline: none; transition: border-color 0.3s;">
@@ -101,7 +100,7 @@
             </div>
             <div class="topbar-center">
                 <div style="display: flex; align-items: center;">
-                    <img src="ndb_logo.png" alt="AGROGIS Logo" style="height: 60px; margin-top: 10px; border-radius: 10px;">
+                    <img src="logo.png.jpg" alt="AGROGIS Logo" style="height: 80px; mix-blend-mode: screen; margin-top: 10px;">
                 </div>
             </div>
             <div class="topbar-right">
@@ -726,6 +725,8 @@
      integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
      crossorigin=""></script>
      
+    <!-- Leaflet Rotate Plugin -->
+    <script src="https://unpkg.com/leaflet-rotate@0.2.8/dist/leaflet-rotate.js"></script>
     
     <!-- Leaflet Routing Machine JS -->
     <script src="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.js"></script>
