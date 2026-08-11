@@ -1,7 +1,7 @@
 {
   "name": "Agrogis NDB",
   "short_name": "NDB Mapas",
-  "start_url": "./index.html?v=2",
+  "start_url": "./index.html?v=3",
   "display": "standalone",
   "background_color": "#111418",
   "theme_color": "#e85d04",
