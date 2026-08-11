@@ -117,10 +117,21 @@
             <!-- Floating Top Right Wrapper -->
             <div class="top-right-wrapper" style="position: absolute; top: 24px; right: 24px; z-index: 1000; display: flex; flex-direction: column; align-items: flex-end; gap: 12px;">
                 
-                <!-- Mobile Menu Button -->
-                <button id="mobile-menu-btn" class="mobile-only-btn" title="Menu Principal">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
-                </button>
+                <!-- Mobile Menu Button and Dropdown -->
+                <div style="position: relative;">
+                    <button id="mobile-menu-btn" class="mobile-only-btn" title="Menu Principal">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+                    </button>
+                    <div id="mobile-menu-dropdown" style="display: none; position: absolute; top: 100%; right: 0; margin-top: 8px; background: rgba(5,8,7,0.95); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.5); z-index: 1001; padding: 5px; flex-direction: column; width: 160px;">
+                        <button id="btn-refresh-app" style="background: none; border: none; color: #fff; text-align: left; padding: 10px 12px; cursor: pointer; width: 100%; border-radius: 4px; display: flex; align-items: center; gap: 8px; font-size: 14px; transition: background 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.1)'" onmouseout="this.style.background='none'">
+                            <span>🔄</span> Atualizar App
+                        </button>
+                        <hr style="border: 0; border-top: 1px solid rgba(255,255,255,0.1); margin: 4px 0;">
+                        <button id="btn-logout-mobile" style="background: none; border: none; color: #ff4d4d; text-align: left; padding: 10px 12px; cursor: pointer; width: 100%; border-radius: 4px; display: flex; align-items: center; gap: 8px; font-size: 14px; transition: background 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.1)'" onmouseout="this.style.background='none'">
+                            <span>🚪</span> Sair
+                        </button>
+                    </div>
+                </div>
 
                 <!-- Gray Panel: Search + Basemap -->
                 <div class="top-right-controls" style="display: flex; flex-direction: column; gap: 8px;">
@@ -726,16 +737,20 @@
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const menuBtn = document.getElementById('mobile-menu-btn');
-            const sidebar = document.querySelector('.sidebar');
-            if (menuBtn && sidebar) {
+            const menuDropdown = document.getElementById('mobile-menu-dropdown');
+            if (menuBtn && menuDropdown) {
                 menuBtn.addEventListener('click', (e) => {
-                    sidebar.classList.toggle('open');
+                    menuDropdown.style.display = menuDropdown.style.display === 'none' ? 'flex' : 'none';
                     e.stopPropagation();
                 });
-                document.getElementById('map').addEventListener('click', () => {
-                    if (window.innerWidth <= 768 && sidebar.classList.contains('open')) {
-                        sidebar.classList.remove('open');
+                document.addEventListener('click', (e) => {
+                    if (!menuBtn.contains(e.target) && !menuDropdown.contains(e.target)) {
+                        menuDropdown.style.display = 'none';
                     }
+                });
+                
+                document.getElementById('btn-refresh-app').addEventListener('click', () => {
+                    window.location.reload();
                 });
             }
 

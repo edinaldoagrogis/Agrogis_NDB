@@ -72,11 +72,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Logout logic
     const btnLogout = document.getElementById('btn-logout');
+    const btnLogoutMobile = document.getElementById('btn-logout-mobile');
+    
+    function handleLogout() {
+        localStorage.removeItem('agrogis_auth_level');
+        window.location.reload();
+    }
+    
     if (btnLogout) {
-        btnLogout.addEventListener('click', () => {
-            localStorage.removeItem('agrogis_auth_level');
-            window.location.reload();
-        });
+        btnLogout.addEventListener('click', handleLogout);
+    }
+    if (btnLogoutMobile) {
+        btnLogoutMobile.addEventListener('click', handleLogout);
     }
 
     function performLogin() {
