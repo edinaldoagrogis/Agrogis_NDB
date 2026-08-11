@@ -122,13 +122,12 @@
                     <button id="mobile-menu-btn" class="mobile-only-btn" title="Menu Principal">
                         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
                     </button>
-                    <div id="mobile-menu-dropdown" style="display: none; position: absolute; top: 100%; right: 0; margin-top: 8px; background: rgba(5,8,7,0.95); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.5); z-index: 1001; padding: 5px; flex-direction: column; width: 160px;">
-                        <button id="btn-refresh-app" style="background: none; border: none; color: #fff; text-align: left; padding: 10px 12px; cursor: pointer; width: 100%; border-radius: 4px; display: flex; align-items: center; gap: 8px; font-size: 14px; transition: background 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.1)'" onmouseout="this.style.background='none'">
-                            <span>🔄</span> Atualizar App
+                    <div id="mobile-menu-dropdown" style="display: none; position: absolute; top: 0; right: 100%; margin-right: 8px; background: rgba(5,8,7,0.95); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.5); z-index: 1001; padding: 5px; flex-direction: row; align-items: center; gap: 5px;">
+                        <button id="btn-refresh-app" style="background: none; border: none; color: #fff; padding: 8px; cursor: pointer; border-radius: 4px; display: flex; align-items: center; justify-content: center; transition: background 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.1)'" onmouseout="this.style.background='none'" title="Atualizar App">
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>
                         </button>
-                        <hr style="border: 0; border-top: 1px solid rgba(255,255,255,0.1); margin: 4px 0;">
-                        <button id="btn-logout-mobile" style="background: none; border: none; color: #ff4d4d; text-align: left; padding: 10px 12px; cursor: pointer; width: 100%; border-radius: 4px; display: flex; align-items: center; gap: 8px; font-size: 14px; transition: background 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.1)'" onmouseout="this.style.background='none'">
-                            <span>🚪</span> Sair
+                        <button id="btn-logout-mobile" style="background: none; border: none; color: #ff4d4d; padding: 8px; cursor: pointer; border-radius: 4px; display: flex; align-items: center; justify-content: center; transition: background 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.1)'" onmouseout="this.style.background='none'" title="Sair do Sistema">
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18.36 6.64a9 9 0 1 1-12.73 0"></path><line x1="12" y1="2" x2="12" y2="12"></line></svg>
                         </button>
                     </div>
                 </div>
