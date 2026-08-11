@@ -124,6 +124,9 @@
                         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
                     </button>
                     <div id="mobile-menu-dropdown" style="display: none; position: absolute; top: 0; right: 100%; margin-right: 8px; background: rgba(5,8,7,0.95); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.5); z-index: 1001; padding: 5px; flex-direction: row; align-items: center; gap: 5px;">
+                        <button id="btn-info-app" style="background: none; border: none; color: #fff; padding: 8px; cursor: pointer; border-radius: 4px; display: flex; align-items: center; justify-content: center; transition: background 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.1)'" onmouseout="this.style.background='none'" title="Informações do App">
+                            <img src="icone_info.png" style="width: 22px; height: 22px; filter: invert(1);">
+                        </button>
                         <button id="btn-refresh-app" style="background: none; border: none; color: #fff; padding: 8px; cursor: pointer; border-radius: 4px; display: flex; align-items: center; justify-content: center; transition: background 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.1)'" onmouseout="this.style.background='none'" title="Atualizar App">
                             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>
                         </button>
@@ -743,6 +746,10 @@
                     if (!menuBtn.contains(e.target) && !menuDropdown.contains(e.target)) {
                         menuDropdown.style.display = 'none';
                     }
+                });
+                
+                document.getElementById('btn-info-app').addEventListener('click', () => {
+                    alert('NDB_Mapas\nAutor: Agrogis\nAtualização: v1_11082026');
                 });
                 
                 document.getElementById('btn-refresh-app').addEventListener('click', () => {

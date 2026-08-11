@@ -34,8 +34,10 @@ document.addEventListener('DOMContentLoaded', () => {
             container.title = 'Habilitar/Desabilitar Rotação Livre';
 
             const icon = L.DomUtil.create('div', '', container);
-            icon.innerHTML = '🧭';
-            icon.style.fontSize = '24px';
+            icon.innerHTML = '<img src="icone_bussola.png" style="width: 28px; height: 28px; border-radius: 4px;">';
+            icon.style.display = 'flex';
+            icon.style.justifyContent = 'center';
+            icon.style.alignItems = 'center';
             icon.style.transition = 'opacity 0.2s';
             icon.style.opacity = '0.5'; // Default locked state (greyed out)
             
