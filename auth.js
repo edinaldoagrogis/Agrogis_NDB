@@ -135,7 +135,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 loginOverlay.style.transition = 'opacity 0.5s ease, visibility 0.5s ease';
                 loginOverlay.style.opacity = '0';
                 loginOverlay.style.visibility = 'hidden';
-                setTimeout(() => loginOverlay.remove(), 500);
+                setTimeout(() => {
+                    loginOverlay.remove();
+                    // After login overlay is gone, check if we should prompt install
+                    const alreadyAsked = localStorage.getItem('agrogis_install_asked');
+                    if (!alreadyAsked && window._deferredInstallPrompt) {
+                        showInstallModal();
+                    }
+                }, 600);
             }
 
             // Always show the container so the UI structure remains consistent
@@ -172,4 +179,69 @@ document.addEventListener('DOMContentLoaded', () => {
             alert('Erro ao dar acesso: ' + e.message + '\n' + e.stack);
         }
     }
-});
+
+    function showInstallModal() {
+        localStorage.setItem('agrogis_install_asked', '1');
+
+        const modal = document.createElement('div');
+        modal.id = 'install-modal';
+        modal.style.cssText = `
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.7); z-index: 99999;
+            display: flex; justify-content: center; align-items: center;
+            backdrop-filter: blur(8px); animation: fadeIn 0.3s ease;
+        `;
+        modal.innerHTML = `
+            <div style="
+                background: linear-gradient(145deg, #1a2a1f, #0d1a10);
+                border: 1px solid rgba(46,196,182,0.3);
+                border-radius: 20px;
+                padding: 36px 30px;
+                max-width: 320px;
+                width: 90%;
+                text-align: center;
+                box-shadow: 0 20px 60px rgba(0,0,0,0.6), 0 0 0 1px rgba(46,196,182,0.1);
+                animation: slideUp 0.4s cubic-bezier(0.2,0.8,0.2,1);
+            ">
+                <div style="font-size: 56px; margin-bottom: 16px;">📲</div>
+                <img src="app_icon_512.png" alt="NDB Mapas" style="width: 80px; height: 80px; border-radius: 18px; margin-bottom: 16px; box-shadow: 0 8px 24px rgba(0,0,0,0.4);">
+                <h2 style="color: #fff; margin: 0 0 8px 0; font-size: 20px; font-weight: 700;">Instalar NDB Mapas</h2>
+                <p style="color: #a8b8b0; font-size: 14px; line-height: 1.5; margin: 0 0 28px 0;">Deseja instalar o <strong style='color:#2ec4b6;'>NDB Mapas</strong> no seu celular? Ele vai funcionar como um app nativo, sem precisar abrir o navegador!</p>
+                <button id="btn-install-confirm" style="
+                    width: 100%; padding: 14px;
+                    background: linear-gradient(90deg, #2ec4b6, #1a9e93);
+                    color: #fff; font-weight: 700; border: none;
+                    border-radius: 10px; cursor: pointer;
+                    font-size: 15px; margin-bottom: 10px;
+                    letter-spacing: 0.5px;
+                ">✅ Sim, Instalar Agora</button>
+                <button id="btn-install-dismiss" style="
+                    width: 100%; padding: 12px;
+                    background: transparent;
+                    color: #a8b8b0; border: 1px solid rgba(255,255,255,0.1);
+                    border-radius: 10px; cursor: pointer; font-size: 13px;
+                ">Agora não</button>
+            </div>
+            <style>
+                @keyframes slideUp {
+                    from { opacity: 0; transform: translateY(40px) scale(0.95); }
+                    to   { opacity: 1; transform: translateY(0) scale(1); }
+                }
+            </style>
+        `;
+
+        document.body.appendChild(modal);
+
+        document.getElementById('btn-install-confirm').addEventListener('click', async () => {
+            modal.remove();
+            if (window._deferredInstallPrompt) {
+                window._deferredInstallPrompt.prompt();
+                await window._deferredInstallPrompt.userChoice;
+                window._deferredInstallPrompt = null;
+            }
+        });
+
+        document.getElementById('btn-install-dismiss').addEventListener('click', () => {
+            modal.remove();
+        });
+    }

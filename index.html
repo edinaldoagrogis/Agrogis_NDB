@@ -127,6 +127,9 @@
                         <button id="btn-info-app" style="background: none; border: none; color: #fff; padding: 8px; cursor: pointer; border-radius: 4px; display: flex; align-items: center; justify-content: center; transition: background 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.1)'" onmouseout="this.style.background='none'" title="Informações do App">
                             <img src="icone_info.png" style="width: 22px; height: 22px; filter: invert(1);">
                         </button>
+                        <button id="btn-install-mobile" style="background: none; border: none; color: #2ec4b6; padding: 8px; cursor: pointer; border-radius: 4px; display: none; align-items: center; justify-content: center; transition: background 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.1)'" onmouseout="this.style.background='none'" title="Instalar App">
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                        </button>
                         <button id="btn-refresh-app" style="background: none; border: none; color: #fff; padding: 8px; cursor: pointer; border-radius: 4px; display: flex; align-items: center; justify-content: center; transition: background 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.1)'" onmouseout="this.style.background='none'" title="Atualizar App">
                             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>
                         </button>
@@ -809,30 +812,32 @@
             });
         }
         // PWA Install Prompt Logic
-        let deferredPrompt;
         const installBtn = document.getElementById('btn-install');
 
         window.addEventListener('beforeinstallprompt', (e) => {
-            // Prevent the mini-infobar from appearing on mobile
             e.preventDefault();
-            // Stash the event so it can be triggered later.
-            deferredPrompt = e;
-            // Update UI notify the user they can install the PWA
+            // Store globally so auth.js can trigger it after login
+            window._deferredInstallPrompt = e;
+            // Show on login screen
             if(installBtn) installBtn.style.display = 'block';
         });
 
         if(installBtn) {
             installBtn.addEventListener('click', async () => {
-                if (deferredPrompt) {
-                    deferredPrompt.prompt();
-                    const { outcome } = await deferredPrompt.userChoice;
-                    if (outcome === 'accepted') {
-                        installBtn.style.display = 'none';
-                    }
-                    deferredPrompt = null;
+                if (window._deferredInstallPrompt) {
+                    window._deferredInstallPrompt.prompt();
+                    await window._deferredInstallPrompt.userChoice;
+                    window._deferredInstallPrompt = null;
+                    installBtn.style.display = 'none';
                 }
             });
         }
+
+        // Hide install button if app is already installed
+        window.addEventListener('appinstalled', () => {
+            if(installBtn) installBtn.style.display = 'none';
+            window._deferredInstallPrompt = null;
+        });
     </script>
 </body>
 </html>
