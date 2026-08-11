@@ -94,13 +94,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 localStorage.setItem('agrogis_saved_passwords', JSON.stringify(savedPasswords));
             }
 
-            // Nível 1: Apenas Visualizar
-            if (user === 'AGROGIS_NDB' && pass === 'AGROGIS_NDB') {
-                grantAccess(1);
-            }
-            // Nível 2: Administrador (Importar Programação)
-            else if (user === 'AGROGIS_NDB_ADM' && pass === 'AGROGIS_NDB_ADM') {
-                grantAccess(2);
+            // Only one login for the entire app
+            if (user === 'NDB_MAPA' && pass === 'NDB_MAPA') {
+                grantAccess(2); // Grant admin access or single tier access
             }
             else {
             loginError.style.display = 'block';
