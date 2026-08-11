@@ -113,20 +113,40 @@ class DJISmartFarmScraper:
                     pass
             
             if intercepted_geojson:
-                # Salvar o GeoJSON para que o endpoint de conversão possa ler depois
-                with open("dji_latest_geojson.json", "w", encoding="utf-8") as f:
-                    json.dump(intercepted_geojson, f, ensure_ascii=False)
+                import uuid
+                from datetime import datetime
+                
+                # Gerar ID único para o mapa
+                map_id = f"dji_{uuid.uuid4().hex[:8]}"
+                now_str = datetime.now().strftime('%Y-%m-%d %H:%M')
+                
+                new_map = {
+                    "id": map_id,
+                    "name": f"Talhão DJI ({now_str})",
+                    "area_ha": 0.0, # Pode ser calculado depois
+                    "date": now_str,
+                    "geojson": intercepted_geojson
+                }
+                
+                # Ler mapas existentes
+                maps_file = "dji_saved_maps.json"
+                saved_maps = []
+                if os.path.exists(maps_file):
+                    try:
+                        with open(maps_file, "r", encoding="utf-8") as f:
+                            saved_maps = json.load(f)
+                    except:
+                        pass
+                
+                # Adicionar novo mapa
+                saved_maps.append(new_map)
+                
+                # Salvar arquivo atualizado
+                with open(maps_file, "w", encoding="utf-8") as f:
+                    json.dump(saved_maps, f, ensure_ascii=False, indent=4)
                     
-                print("[RPA] Arquivo de mapa DJI salvo. O navegador será fechado agora.")
-                return [
-                    {
-                        "id": "dji_poly_1",
-                        "name": "TESTE 01 - SmartFarm (Automático)",
-                        "area_ha": 38.63,
-                        "date": "2026-08-10",
-                        "geojson": intercepted_geojson
-                    }
-                ]
+                print(f"[RPA] Arquivo de mapa DJI salvo com ID {map_id}. O navegador será fechado agora.")
+                return [new_map]
             else:
                 raise Exception("Nenhum mapa foi interceptado a tempo. Verifique se você fez o login e abriu o mapa.")
             

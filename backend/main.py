@@ -421,18 +421,25 @@ class DjiToXagRequest(BaseModel):
 async def convert_dji_to_xag(req: DjiToXagRequest):
     import geopandas as gpd
     
-    # Ler o GeoJSON capturado pelo interceptador
-    geojson_path = "dji_latest_geojson.json"
+    # Ler o histórico de GeoJSONs capturados
+    geojson_path = "dji_saved_maps.json"
     if not os.path.exists(geojson_path):
-        raise HTTPException(status_code=404, detail="Nenhum mapa capturado recentemente. Sincronize novamente.")
+        raise HTTPException(status_code=404, detail="Nenhum mapa salvo no sistema.")
         
     with open(geojson_path, "r", encoding="utf-8") as f:
-        dji_data = json.load(f)
+        saved_maps = json.load(f)
+        
+    # Encontrar o mapa específico pelo ID
+    dji_data = next((m for m in saved_maps if m["id"] == req.id), None)
+    if not dji_data:
+        raise HTTPException(status_code=404, detail="Mapa não encontrado no histórico.")
+        
+    geojson = dji_data.get('geojson', {})
         
     # Extrair as features do tipo Polygon (Geralmente PlantZone)
-    features = [feat for feat in dji_data.get('features', []) if feat.get('geometry') and feat['geometry']['type'] == 'Polygon']
+    features = [feat for feat in geojson.get('features', []) if feat.get('geometry') and feat['geometry']['type'] == 'Polygon']
     if not features:
-        features = dji_data.get('features', [])
+        features = geojson.get('features', [])
         
     if not features:
         raise HTTPException(status_code=400, detail="O arquivo interceptado não contém polígonos válidos.")

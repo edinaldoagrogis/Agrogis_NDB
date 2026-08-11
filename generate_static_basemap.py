@@ -13,7 +13,9 @@ MAX_WORKERS = 3
 IMAGE_SIZE = 1200 # Download 1200x1200 images for lighter size and faster download
 
 def get_export_url(min_lon, min_lat, max_lon, max_lat):
-    return f"https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/export?bbox={min_lon},{min_lat},{max_lon},{max_lat}&bboxSR=4326&size={IMAGE_SIZE},{IMAGE_SIZE}&imageSR=4326&format=jpg&f=image"
+    # bboxSR=4326 (input coordinates are lat/lon)
+    # imageSR=3857 (output image is Web Mercator to align with Leaflet)
+    return f"https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/export?bbox={min_lon},{min_lat},{max_lon},{max_lat}&bboxSR=4326&size={IMAGE_SIZE},{IMAGE_SIZE}&imageSR=3857&format=jpg&f=image"
 
 def process_coords(coords, bounds):
     if not coords: return
