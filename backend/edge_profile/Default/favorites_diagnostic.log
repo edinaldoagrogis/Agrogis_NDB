@@ -96,3 +96,47 @@
 2026-08-10 23:44:49.468: [INFO] BookmarksSnapshot Startup total=0 bar=0 other=0 mobile=0 showBar=0 showBarNTP=1
 2026-08-10 23:44:50.707: [INFO] VisibilityChanged: 0
 2026-08-10 23:45:17.000: [INFO] BookmarksSnapshot Shutdown total=0 bar=0 other=0 mobile=0 showBar=0 showBarNTP=1
+2026-08-11 00:39:37.309: [INFO] CurrentProfilePath: C:\Users\EDINALDO\Documents\GEOPORTAL_NDB_002\backend\edge_profile\Default
+2026-08-11 00:39:37.309: [INFO] Profiles total count: 1
+2026-08-11 00:39:37.310: [INFO] Profile: name=Perfil 1 path=C:\Users\EDINALDO\Documents\GEOPORTAL_NDB_002\backend\edge_profile\Default lastActive=2026-08-11T00:39:37.285Z
+2026-08-11 00:39:37.310: [INFO] LastUsedProfileDir: C:\Users\EDINALDO\Documents\GEOPORTAL_NDB_002\backend\edge_profile\Default
+2026-08-11 00:39:37.310: [INFO] MostRecentlyActiveProfile: name=Perfil 1 path=C:\Users\EDINALDO\Documents\GEOPORTAL_NDB_002\backend\edge_profile\Default lastActive=2026-08-11T00:39:37.285Z
+2026-08-11 00:39:37.310: [INFO] OnDoneLoading sync enabled: 0
+2026-08-11 00:39:37.310: [INFO] BookmarkModelLoaded, ids_reassigned: 0
+2026-08-11 00:39:37.310: [INFO] BookmarksLoadDropped droppedNodes=0
+2026-08-11 00:39:37.310: [INFO] BookmarksSnapshot Startup total=0 bar=0 other=0 mobile=0 showBar=0 showBarNTP=1
+2026-08-11 00:39:39.005: [INFO] VisibilityChanged: 0
+2026-08-11 00:40:18.996: [INFO] BookmarksSnapshot Shutdown total=0 bar=0 other=0 mobile=0 showBar=0 showBarNTP=1
+2026-08-11 00:40:31.320: [INFO] CurrentProfilePath: C:\Users\EDINALDO\Documents\GEOPORTAL_NDB_002\backend\edge_profile\Default
+2026-08-11 00:40:31.320: [INFO] Profiles total count: 1
+2026-08-11 00:40:31.322: [INFO] Profile: name=Perfil 1 path=C:\Users\EDINALDO\Documents\GEOPORTAL_NDB_002\backend\edge_profile\Default lastActive=2026-08-11T00:40:31.291Z
+2026-08-11 00:40:31.322: [INFO] LastUsedProfileDir: C:\Users\EDINALDO\Documents\GEOPORTAL_NDB_002\backend\edge_profile\Default
+2026-08-11 00:40:31.322: [INFO] MostRecentlyActiveProfile: name=Perfil 1 path=C:\Users\EDINALDO\Documents\GEOPORTAL_NDB_002\backend\edge_profile\Default lastActive=2026-08-11T00:40:31.291Z
+2026-08-11 00:40:31.322: [INFO] OnDoneLoading sync enabled: 0
+2026-08-11 00:40:31.322: [INFO] BookmarkModelLoaded, ids_reassigned: 0
+2026-08-11 00:40:31.322: [INFO] BookmarksLoadDropped droppedNodes=0
+2026-08-11 00:40:31.322: [INFO] BookmarksSnapshot Startup total=0 bar=0 other=0 mobile=0 showBar=0 showBarNTP=1
+2026-08-11 00:40:32.530: [INFO] VisibilityChanged: 0
+2026-08-11 00:41:05.455: [INFO] BookmarksSnapshot Shutdown total=0 bar=0 other=0 mobile=0 showBar=0 showBarNTP=1
+2026-08-11 00:44:32.111: [INFO] CurrentProfilePath: C:\Users\EDINALDO\Documents\GEOPORTAL_NDB_002\backend\edge_profile\Default
+2026-08-11 00:44:32.111: [INFO] Profiles total count: 1
+2026-08-11 00:44:32.113: [INFO] Profile: name=Perfil 1 path=C:\Users\EDINALDO\Documents\GEOPORTAL_NDB_002\backend\edge_profile\Default lastActive=2026-08-11T00:44:32.078Z
+2026-08-11 00:44:32.113: [INFO] LastUsedProfileDir: C:\Users\EDINALDO\Documents\GEOPORTAL_NDB_002\backend\edge_profile\Default
+2026-08-11 00:44:32.113: [INFO] MostRecentlyActiveProfile: name=Perfil 1 path=C:\Users\EDINALDO\Documents\GEOPORTAL_NDB_002\backend\edge_profile\Default lastActive=2026-08-11T00:44:32.078Z
+2026-08-11 00:44:32.113: [INFO] OnDoneLoading sync enabled: 0
+2026-08-11 00:44:32.113: [INFO] BookmarkModelLoaded, ids_reassigned: 0
+2026-08-11 00:44:32.114: [INFO] BookmarksLoadDropped droppedNodes=0
+2026-08-11 00:44:32.114: [INFO] BookmarksSnapshot Startup total=0 bar=0 other=0 mobile=0 showBar=0 showBarNTP=1
+2026-08-11 00:44:33.544: [INFO] VisibilityChanged: 0
+2026-08-11 00:45:31.943: [INFO] BookmarksSnapshot Shutdown total=0 bar=0 other=0 mobile=0 showBar=0 showBarNTP=1
+2026-08-11 00:46:09.115: [INFO] CurrentProfilePath: C:\Users\EDINALDO\Documents\GEOPORTAL_NDB_002\backend\edge_profile\Default
+2026-08-11 00:46:09.115: [INFO] Profiles total count: 1
+2026-08-11 00:46:09.115: [INFO] Profile: name=Perfil 1 path=C:\Users\EDINALDO\Documents\GEOPORTAL_NDB_002\backend\edge_profile\Default lastActive=2026-08-11T00:46:09.079Z
+2026-08-11 00:46:09.115: [INFO] LastUsedProfileDir: C:\Users\EDINALDO\Documents\GEOPORTAL_NDB_002\backend\edge_profile\Default
+2026-08-11 00:46:09.115: [INFO] MostRecentlyActiveProfile: name=Perfil 1 path=C:\Users\EDINALDO\Documents\GEOPORTAL_NDB_002\backend\edge_profile\Default lastActive=2026-08-11T00:46:09.079Z
+2026-08-11 00:46:09.115: [INFO] OnDoneLoading sync enabled: 0
+2026-08-11 00:46:09.115: [INFO] BookmarkModelLoaded, ids_reassigned: 0
+2026-08-11 00:46:09.115: [INFO] BookmarksLoadDropped droppedNodes=0
+2026-08-11 00:46:09.115: [INFO] BookmarksSnapshot Startup total=0 bar=0 other=0 mobile=0 showBar=0 showBarNTP=1
+2026-08-11 00:46:10.551: [INFO] VisibilityChanged: 0
+2026-08-11 00:46:18.659: [INFO] BookmarksSnapshot Shutdown total=0 bar=0 other=0 mobile=0 showBar=0 showBarNTP=1

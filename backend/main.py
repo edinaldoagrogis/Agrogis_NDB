@@ -414,6 +414,17 @@ async def get_dji_shared_fields():
         return [{"id": "task1", "name": "TESTE 01 - SmartFarm (Simulado)", "area_ha": 16.26, "date": "2026-08-10"}]
 
 
+@app.get("/api/dji/saved-maps")
+async def get_saved_dji_maps():
+    maps_file = "dji_saved_maps.json"
+    if not os.path.exists(maps_file):
+        return []
+    try:
+        with open(maps_file, "r", encoding="utf-8") as f:
+            return json.load(f)
+    except:
+        return []
+
 class DjiToXagRequest(BaseModel):
     id: str
 

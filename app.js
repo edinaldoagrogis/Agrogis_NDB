@@ -2803,6 +2803,106 @@ loadedLayers[type.toUpperCase()] = myLayers[type];
 
 
 // ----------------------------------------------------
+// HISTÓRICO DE MAPAS DJI (MAPAS DE APLICAÇÃO)
+// ----------------------------------------------------
+(async function initDjiSavedMaps() {
+    try {
+        const req = await fetch('http://localhost:8000/api/dji/saved-maps');
+        if (!req.ok) return;
+        const savedMaps = await req.json();
+        if (savedMaps.length === 0) return;
+
+        const dynamicLayerList = document.getElementById('dynamic-layer-list');
+        if (!dynamicLayerList) return;
+
+        const li = document.createElement('li');
+        li.style.display = 'block';
+        li.style.marginTop = '15px';
+        li.style.borderTop = '1px solid rgba(255,255,255,0.1)';
+        li.style.paddingTop = '15px';
+
+        const djiIcon = `<div style="width: 36px; height: 36px; border-radius: 8px; background: rgba(0, 255, 68, 0.1); display: flex; justify-content: center; align-items: center; margin-right: 12px; flex-shrink: 0;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#00ff44" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/><circle cx="12" cy="12" r="3"/></svg></div>`;
+
+        let submenuHtml = '';
+        savedMaps.forEach(mapItem => {
+            submenuHtml += `
+                <div class="dji-saved-map-item" data-id="${mapItem.id}" style="display: flex; align-items: center; justify-content: space-between; padding: 8px; background: rgba(255,255,255,0.02); margin-bottom: 4px; border-radius: 6px; cursor: pointer; transition: background 0.2s;">
+                    <div style="font-size: 11px; color: #fff; font-weight: 500;">${mapItem.name}</div>
+                    <div style="font-size: 9px; color: rgba(255,255,255,0.4);">${mapItem.date}</div>
+                </div>
+            `;
+        });
+
+        li.innerHTML = `
+            <div class="layer-main-row" style="cursor: pointer;">
+                ${djiIcon}
+                <div class="layer-text-container" style="flex-grow: 1; display: flex; flex-direction: column; justify-content: center; text-align: left;">
+                    <div class="layer-name" style="font-size: 14px; font-weight: bold; color: #fff; line-height: 1;">Mapas de Aplicação</div>
+                    <div class="layer-subtitle" style="font-size: 9px; color: rgba(255, 255, 255, 0.4); margin-top: 2px;">Mapas importados da DJI</div>
+                </div>
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <span class="submenu-arrow" style="font-size: 10px; color: rgba(255,255,255,0.5); font-weight: bold; width: 16px; text-align: center;">▼</span>
+                </div>
+            </div>
+            <div class="layer-submenu" style="display: none; margin-top: 10px; margin-left: 35px; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 10px; padding-bottom: 5px;">
+                ${submenuHtml}
+            </div>
+        `;
+
+        dynamicLayerList.appendChild(li);
+
+        const mainRow = li.querySelector('.layer-main-row');
+        const submenu = li.querySelector('.layer-submenu');
+        const arrow = li.querySelector('.submenu-arrow');
+
+        mainRow.addEventListener('click', (e) => {
+            if(e.target.tagName.toLowerCase() === 'input') return;
+            const isHidden = submenu.style.display === 'none';
+            submenu.style.display = isHidden ? 'block' : 'none';
+            arrow.innerText = isHidden ? '▲' : '▼';
+        });
+
+        // Add click events to map items
+        const mapItems = li.querySelectorAll('.dji-saved-map-item');
+        mapItems.forEach(item => {
+            item.addEventListener('click', () => {
+                const mapId = item.getAttribute('data-id');
+                const mapData = savedMaps.find(m => m.id === mapId);
+                if (mapData && mapData.geojson) {
+                    if (window.djiPolyLayer) {
+                        map.removeLayer(window.djiPolyLayer);
+                    }
+                    window.djiPolyLayer = L.geoJSON(mapData.geojson, {
+                        style: { color: '#00ff44', weight: 3, fillColor: '#00ff44', fillOpacity: 0.1 }
+                    }).addTo(map);
+                    map.fitBounds(window.djiPolyLayer.getBounds(), { padding: [50, 50] });
+
+                    // Simulate the sync window popup for this map
+                    const djiDownloadBtn = document.getElementById('dji-download-xag-btn');
+                    if (djiDownloadBtn) {
+                        document.getElementById('dji-integration-modal').style.display = 'flex';
+                        document.getElementById('dji-selected-map-name').innerText = mapData.name;
+                        document.getElementById('dji-selected-map-area').innerText = `Data: ${mapData.date}`;
+                        document.getElementById('dji-selected-map-panel').style.display = 'block';
+                        
+                        djiDownloadBtn.style.display = 'flex';
+                        djiDownloadBtn.innerHTML = '🚁 Baixar Shapefile (XAG)';
+                        djiDownloadBtn.onclick = () => {
+                            if (typeof downloadXagZip === 'function') {
+                                downloadXagZip(mapId);
+                            }
+                        };
+                    }
+                }
+            });
+        });
+
+    } catch (e) {
+        console.error("Failed to load saved DJI maps:", e);
+    }
+})();
+
+// ----------------------------------------------------
 // INTEGRAÇÃO DJI SMARTFARM -> XAG
 // ----------------------------------------------------
 (function initDJIIntegration() {

@@ -10,12 +10,26 @@ GEOJSON_FILE = 'TALHOES.geojson'
 OUTPUT_DIR = 'offline_images'
 OUTPUT_JS = 'offline_images_config.js'
 MAX_WORKERS = 3
-IMAGE_SIZE = 1200 # Download 1200x1200 images for lighter size and faster download
+IMAGE_SIZE = 1200
+import math
 
-def get_export_url(min_lon, min_lat, max_lon, max_lat):
-    # bboxSR=4326 (input coordinates are lat/lon)
-    # imageSR=3857 (output image is Web Mercator to align with Leaflet)
-    return f"https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/export?bbox={min_lon},{min_lat},{max_lon},{max_lat}&bboxSR=4326&size={IMAGE_SIZE},{IMAGE_SIZE}&imageSR=3857&format=jpg&f=image"
+def latlon_to_meters(lat, lon):
+    x = lon * 20037508.34 / 180
+    y = math.log(math.tan((90 + lat) * math.pi / 360)) / (math.pi / 180)
+    y = y * 20037508.34 / 180
+    return x, y
+
+def meters_to_latlon(x, y):
+    lon = (x / 20037508.34) * 180
+    lat = 180 / math.pi * (2 * math.atan(math.exp(y * 20037508.34 / 180 * math.pi / 180 / 20037508.34)) - math.pi / 2) # simplified:
+    # Actually simpler:
+    y_deg = (y / 20037508.34) * 180
+    lat = 180 / math.pi * (2 * math.atan(math.exp(y_deg * math.pi / 180)) - math.pi / 2)
+    return lat, lon
+
+def get_export_url(min_x, min_y, max_x, max_y):
+    # Send request completely in Web Mercator (3857) to avoid any reprojection bounding-box distortion by ArcGIS
+    return f"https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/export?bbox={min_x},{min_y},{max_x},{max_y}&bboxSR=3857&size={IMAGE_SIZE},{IMAGE_SIZE}&imageSR=3857&format=jpg&f=image"
 
 def process_coords(coords, bounds):
     if not coords: return
@@ -64,24 +78,35 @@ def main():
     max_lon = bounds['max_lon'] + lon_buffer
     min_lat = bounds['min_lat'] - lat_buffer
     max_lat = bounds['max_lat'] + lat_buffer
-
-    print(f"BBox Total: {min_lon}, {min_lat}, {max_lon}, {max_lat}")
+    # Convert overall bounding box to Web Mercator
+    min_x, min_y = latlon_to_meters(min_lat, min_lon)
+    max_x, max_y = latlon_to_meters(max_lat, max_lon)
+    
+    print(f"BBox Lat/Lon: {min_lon}, {min_lat}, {max_lon}, {max_lat}")
+    print(f"BBox Web Mercator: {min_x}, {min_y}, {max_x}, {max_y}")
     
     os.makedirs(OUTPUT_DIR, exist_ok=True)
     
-    lon_step = (max_lon - min_lon) / GRID_COLS
-    lat_step = (max_lat - min_lat) / GRID_ROWS
+    # Generate 5x5 grid in Web Mercator
+    x_step = (max_x - min_x) / GRID_COLS
+    y_step = (max_y - min_y) / GRID_ROWS
+    
+    print(f"Baixando {GRID_COLS * GRID_ROWS} imagens em grid...")
+    
+    config_items = []
     
     tasks = []
-    config_items = []
     
     for row in range(GRID_ROWS):
         for col in range(GRID_COLS):
-            cell_min_lon = min_lon + (col * lon_step)
-            cell_max_lon = cell_min_lon + lon_step
-            # Row 0 is the bottom-most row in coordinates, but let's just go bottom to top
-            cell_min_lat = min_lat + (row * lat_step)
-            cell_max_lat = cell_min_lat + lat_step
+            cell_min_x = min_x + (col * x_step)
+            cell_max_x = cell_min_x + x_step
+            cell_min_y = min_y + (row * y_step)
+            cell_max_y = cell_min_y + y_step
+            
+            # Convert back to lat/lon for Leaflet
+            cell_min_lat, cell_min_lon = meters_to_latlon(cell_min_x, cell_min_y)
+            cell_max_lat, cell_max_lon = meters_to_latlon(cell_max_x, cell_max_y)
             
             # Leaflet bounds format: [[south, west], [north, east]]
             leaflet_bounds = [[cell_min_lat, cell_min_lon], [cell_max_lat, cell_max_lon]]
@@ -89,7 +114,7 @@ def main():
             filename = f"part_{col}_{row}.jpg"
             filepath = os.path.join(OUTPUT_DIR, filename)
             
-            url = get_export_url(cell_min_lon, cell_min_lat, cell_max_lon, cell_max_lat)
+            url = get_export_url(cell_min_x, cell_min_y, cell_max_x, cell_max_y)
             
             tasks.append((url, filepath))
             config_items.append({

@@ -1,6 +1,6 @@
-2026/08/10-20:40:17.936 63a8 Reusing MANIFEST C:\Users\EDINALDO\Documents\GEOPORTAL_NDB_002\backend\edge_profile\Default\EdgeCoupons/coupons_data.db/MANIFEST-000001
-2026/08/10-20:40:17.940 63a8 Recovering log #19
-2026/08/10-20:40:17.941 63a8 Reusing old log C:\Users\EDINALDO\Documents\GEOPORTAL_NDB_002\backend\edge_profile\Default\EdgeCoupons/coupons_data.db/000019.log 
-2026/08/10-20:40:20.755 2a2c Level-0 table #24: started
-2026/08/10-20:40:20.772 2a2c Level-0 table #24: 683376 bytes OK
-2026/08/10-20:40:20.776 2a2c Delete type=0 #19
+2026/08/10-21:44:35.596 59dc Reusing MANIFEST C:\Users\EDINALDO\Documents\GEOPORTAL_NDB_002\backend\edge_profile\Default\EdgeCoupons/coupons_data.db/MANIFEST-000001
+2026/08/10-21:44:35.597 59dc Recovering log #32
+2026/08/10-21:44:35.599 59dc Reusing old log C:\Users\EDINALDO\Documents\GEOPORTAL_NDB_002\backend\edge_profile\Default\EdgeCoupons/coupons_data.db/000032.log 
+2026/08/10-21:44:36.788 7190 Level-0 table #37: started
+2026/08/10-21:44:36.808 7190 Level-0 table #37: 683376 bytes OK
+2026/08/10-21:44:36.812 7190 Delete type=0 #32
