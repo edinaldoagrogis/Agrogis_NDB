@@ -1,19 +1,20 @@
 {
-  "name": "Agrogis_NDB",
-  "short_name": "Agrogis_NDB",
-  "start_url": "./index.html",
+  "name": "Agrogis NDB",
+  "short_name": "NDB Mapas",
+  "start_url": "./index.html?v=2",
   "display": "standalone",
   "background_color": "#111418",
   "theme_color": "#e85d04",
   "description": "Painel de Controle Operacional Agrícola",
   "icons": [
     {
-      "src": "ndb_logo.png",
+      "src": "app_icon.png",
       "sizes": "192x192",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any"
     },
     {
-      "src": "ndb_logo.png",
+      "src": "app_icon.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
