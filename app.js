@@ -2801,32 +2801,6 @@ loadedLayers[type.toUpperCase()] = myLayers[type];
 
 })();
 
-// ----------------------------------------------------
-// SERVICE WORKER SYNC COMMUNICATION
-// ----------------------------------------------------
-if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.addEventListener('message', (event) => {
-        if (event.data && event.data.type === 'SYNC_PROGRESS') {
-            const container = document.getElementById('offline-sync-container');
-            const textElem = document.getElementById('offline-sync-text');
-            if (!container || !textElem) return;
-
-            if (event.data.done) {
-                container.style.display = 'none';
-            } else {
-                container.style.display = 'flex';
-                const percent = Math.round((event.data.downloaded / event.data.total) * 100);
-                textElem.innerText = `Baixando mapa offline: ${percent}%`;
-            }
-        }
-    });
-
-    navigator.serviceWorker.ready.then(registration => {
-        if (registration.active) {
-            registration.active.postMessage({ type: 'SYNC_TILES' });
-        }
-    });
-}
 
 // ----------------------------------------------------
 // INTEGRAÇÃO DJI SMARTFARM -> XAG
