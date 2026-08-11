@@ -150,7 +150,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Toggle labels based on zoom level and user preference
     const isMobile = window.innerWidth <= 768;
-    const ZOOM_THRESHOLD = 14; // Fazendas (Appears closer)
+    const ZOOM_THRESHOLD = 12; // Fazendas (Appears closer)
     const TALHOES_ZOOM_THRESHOLD = 15; // Talhões (Appears closer)
     const EQUIPES_ZOOM_THRESHOLD = isMobile ? 10 : 8; // Equipes
     
