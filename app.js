@@ -54,9 +54,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
             }
 
-            container.onclick = function(e) {
-                L.DomEvent.stopPropagation(e);
-                isUnlocked = !isUnlocked;
+            window.toggleCompass = function(forceState) {
+                if (typeof forceState === 'boolean') {
+                    if (isUnlocked === forceState) return;
+                    isUnlocked = forceState;
+                } else {
+                    isUnlocked = !isUnlocked;
+                }
                 
                 if (isUnlocked) {
                     if (map.touchRotate) map.touchRotate.enable();
@@ -72,6 +76,10 @@ document.addEventListener('DOMContentLoaded', () => {
                     container.style.borderColor = 'rgba(255,255,255,0.1)';
                     container.style.boxShadow = 'none';
                 }
+            };
+            container.onclick = function(e) {
+                L.DomEvent.stopPropagation(e);
+                window.toggleCompass();
             };
             return container;
         }
@@ -1738,6 +1746,9 @@ loadedLayers[type.toUpperCase()] = myLayers[type];
         if (routeInfo) routeInfo.style.display = 'none';
         map.getContainer().classList.remove('route-active');
         document.body.classList.remove('hide-equipes');
+        if (typeof window.toggleCompass === 'function') {
+            window.toggleCompass(false);
+        }
     }
 
     btnRoute.addEventListener('click', () => {
@@ -1761,6 +1772,10 @@ loadedLayers[type.toUpperCase()] = myLayers[type];
             if (routeInfo) routeInfo.style.display = 'none';
             setRouteSelectionMode('origin');
             
+            // Auto enable compass
+            if (typeof window.toggleCompass === 'function') {
+                window.toggleCompass(true);
+            }
             // Origin selection active
         }
     });
