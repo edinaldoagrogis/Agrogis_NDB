@@ -1081,8 +1081,19 @@ body.disable-map-hover .leaflet-interactive {
     transition: opacity 0.3s ease, visibility 0.3s ease !important;
 }
 
+.topbar-light {
+    transition: margin-top 0.3s ease, opacity 0.3s ease, visibility 0.3s ease !important;
+}
+
 body.ui-hidden .top-right-wrapper,
 body.ui-hidden .leaflet-bottom.leaflet-right {
+    opacity: 0 !important;
+    visibility: hidden !important;
+    pointer-events: none !important;
+}
+
+body.ui-hidden .topbar-light {
+    margin-top: -101px !important; /* height 100px + 1px border */
     opacity: 0 !important;
     visibility: hidden !important;
     pointer-events: none !important;
