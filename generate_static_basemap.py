@@ -9,8 +9,8 @@ GRID_ROWS = 5
 GEOJSON_FILE = 'TALHOES.geojson'
 OUTPUT_DIR = 'offline_images'
 OUTPUT_JS = 'offline_images_config.js'
-MAX_WORKERS = 5
-IMAGE_SIZE = 2500 # Download 2500x2500 images for higher resolution
+MAX_WORKERS = 3
+IMAGE_SIZE = 1200 # Download 1200x1200 images for lighter size and faster download
 
 def get_export_url(min_lon, min_lat, max_lon, max_lat):
     return f"https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/export?bbox={min_lon},{min_lat},{max_lon},{max_lat}&bboxSR=4326&size={IMAGE_SIZE},{IMAGE_SIZE}&imageSR=4326&format=jpg&f=image"
@@ -27,13 +27,13 @@ def process_coords(coords, bounds):
         for c in coords:
             process_coords(c, bounds)
 
-def download_image(url, filepath, retries=3):
+def download_image(url, filepath, retries=5):
     if os.path.exists(filepath) and os.path.getsize(filepath) > 0:
         return filepath
     
     for attempt in range(retries):
         try:
-            r = requests.get(url, timeout=30)
+            r = requests.get(url, timeout=45)
             if r.status_code == 200:
                 with open(filepath, 'wb') as f:
                     f.write(r.content)
