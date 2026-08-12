@@ -55,6 +55,10 @@ if (Test-Path $csvFile) {
 
 $jsContent += "`n$equipesJs"
 
+# Add Version Data
+$version = "v" + (Get-Date -Format "yy") + "_" + (Get-Date -Format "ddMMyyyy_HHmm")
+$jsContent += "`nconst APP_VERSION = `"$version`";`n"
+
 # Save the final JS file
 Set-Content -Path $outputFile -Value $jsContent -Encoding UTF8
 

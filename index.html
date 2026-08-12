@@ -242,6 +242,26 @@
                                 <div id="weed-tool-status-dot" style="width: 8px; height: 8px; border-radius: 50%; background: #555;" title="Status do servidor"></div>
                             </button>
 
+                            <!-- Separador -->
+                            <div style="height: 1px; background: rgba(0,200,100,0.2); margin: 4px 0;"></div>
+
+                            <!-- Botão Linhas de Plantio -->
+                            <button id="tool-planting-lines-btn" class="tool-action-btn" style="display: flex; align-items: center; gap: 12px; background: rgba(0,200,100,0.08); border: 1px solid rgba(0,200,100,0.3); color: #fff; padding: 12px; border-radius: 8px; cursor: pointer; transition: all 0.2s;" title="Restituir linhas de plantio de cana via ortomosaico de drone">
+                                <div style="width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#00c864" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <line x1="3" y1="3" x2="21" y2="3"></line>
+                                        <line x1="3" y1="8" x2="21" y2="8"></line>
+                                        <line x1="3" y1="13" x2="21" y2="13"></line>
+                                        <line x1="3" y1="18" x2="21" y2="18"></line>
+                                        <line x1="3" y1="23" x2="21" y2="23"></line>
+                                    </svg>
+                                </div>
+                                <div style="flex: 1; text-align: left;">
+                                    <div style="font-size: 13px; font-weight: 600; color: #00c864;">🌾 Linhas de Plantio</div>
+                                    <div style="font-size: 10px; color: rgba(255,255,255,0.4); margin-top: 1px;">Ortomosaico · Restituição Automática</div>
+                                </div>
+                            </button>
+
                         </div>
 
                     </div>
@@ -249,6 +269,141 @@
 
 
             </div> <!-- end right-controls -->
+
+            <!-- ====== PAINEL LINHAS DE PLANTIO ====== -->
+            <div id="planting-lines-panel" style="
+                display: none;
+                position: fixed;
+                top: 80px;
+                right: 20px;
+                width: 380px;
+                background: rgba(10, 14, 12, 0.95);
+                backdrop-filter: blur(16px);
+                border: 1px solid rgba(0, 200, 100, 0.2);
+                border-radius: 16px;
+                color: #fff;
+                z-index: 1100;
+                box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+                max-height: calc(100vh - 120px);
+                overflow-y: auto;
+            ">
+                <!-- Header -->
+                <div style="padding: 18px 20px 14px; border-bottom: 1px solid rgba(0,200,100,0.15); display: flex; align-items: center; justify-content: space-between;">
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <span style="font-size: 22px;">🌾</span>
+                        <div>
+                            <div style="font-size: 15px; font-weight: 700; color: #00c864;">Linhas de Plantio</div>
+                            <div style="font-size: 10px; color: rgba(255,255,255,0.4);">Restituição automática via Ortomosaico</div>
+                        </div>
+                    </div>
+                    <button id="planting-panel-close" style="background: none; border: none; color: rgba(255,255,255,0.4); font-size: 20px; cursor: pointer; padding: 4px 8px; border-radius: 4px; transition: all 0.2s;" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='rgba(255,255,255,0.4)'">✕</button>
+                </div>
+
+                <!-- Upload Zone -->
+                <div id="planting-upload-zone" style="padding: 16px 20px;">
+                    <div id="planting-dropzone" style="
+                        border: 2px dashed rgba(0,200,100,0.3);
+                        border-radius: 12px;
+                        padding: 30px 20px;
+                        text-align: center;
+                        cursor: pointer;
+                        transition: all 0.3s;
+                        background: rgba(0,200,100,0.03);
+                    ">
+                        <div style="font-size: 36px; margin-bottom: 8px;">📁</div>
+                        <div style="font-size: 13px; font-weight: 600; color: rgba(255,255,255,0.7);">Arraste o Ortomosaico aqui</div>
+                        <div style="font-size: 11px; color: rgba(255,255,255,0.3); margin-top: 4px;">ou clique para selecionar</div>
+                        <div style="font-size: 10px; color: rgba(0,200,100,0.5); margin-top: 8px;">Formato: GeoTIFF (.tif) · Até 3 GB</div>
+                        <input type="file" id="planting-file-input" accept=".tif,.tiff" style="display: none;">
+                    </div>
+
+                    <!-- Parâmetros -->
+                    <div style="margin-top: 14px; display: flex; gap: 10px;">
+                        <div style="flex: 1;">
+                            <label style="font-size: 10px; color: rgba(255,255,255,0.4); display: block; margin-bottom: 4px;">Espaçamento (m)</label>
+                            <input type="number" id="planting-spacing" value="1.5" step="0.1" min="0.5" max="5.0" style="
+                                width: 100%; padding: 8px 10px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; color: #fff; font-size: 13px;
+                            ">
+                        </div>
+                        <div style="flex: 1;">
+                            <label style="font-size: 10px; color: rgba(255,255,255,0.4); display: block; margin-bottom: 4px;">GSD (cm/px)</label>
+                            <input type="number" id="planting-gsd" value="3.0" step="0.5" min="1.0" max="20.0" style="
+                                width: 100%; padding: 8px 10px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; color: #fff; font-size: 13px;
+                            ">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Upload Progress -->
+                <div id="planting-upload-progress" style="display: none; padding: 0 20px 12px;">
+                    <div style="font-size: 11px; color: rgba(255,255,255,0.5); margin-bottom: 6px;">Enviando ortomosaico...</div>
+                    <div style="width: 100%; height: 6px; background: rgba(255,255,255,0.08); border-radius: 3px; overflow: hidden;">
+                        <div id="planting-upload-bar" style="width: 0%; height: 100%; background: linear-gradient(90deg, #00c864, #00e676); border-radius: 3px; transition: width 0.3s;"></div>
+                    </div>
+                    <div id="planting-upload-percent" style="font-size: 10px; color: rgba(0,200,100,0.7); margin-top: 4px; text-align: right;">0%</div>
+                </div>
+
+                <!-- Processing Status -->
+                <div id="planting-processing-area" style="display: none; padding: 12px 20px; border-top: 1px solid rgba(255,255,255,0.05);">
+                    <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 12px;">
+                        <div id="planting-spinner" style="width: 18px; height: 18px; border: 2px solid rgba(0,200,100,0.3); border-top-color: #00c864; border-radius: 50%; animation: spin 1s linear infinite;"></div>
+                        <div>
+                            <div id="planting-status-text" style="font-size: 13px; font-weight: 600; color: #00c864;">Processando...</div>
+                            <div id="planting-status-detail" style="font-size: 10px; color: rgba(255,255,255,0.4); margin-top: 2px;">Etapa 1/3</div>
+                        </div>
+                    </div>
+                    <div style="width: 100%; height: 8px; background: rgba(255,255,255,0.05); border-radius: 4px; overflow: hidden;">
+                        <div id="planting-process-bar" style="width: 0%; height: 100%; background: linear-gradient(90deg, #00c864, #00e676); border-radius: 4px; transition: width 0.5s;"></div>
+                    </div>
+                </div>
+
+                <!-- Results -->
+                <div id="planting-results-area" style="display: none; padding: 14px 20px; border-top: 1px solid rgba(0,200,100,0.15);">
+                    <div style="font-size: 14px; font-weight: 700; color: #00c864; margin-bottom: 12px;">✅ Processamento Concluído</div>
+                    
+                    <div style="display: flex; gap: 10px; margin-bottom: 14px;">
+                        <div style="flex: 1; background: rgba(0,200,100,0.08); border: 1px solid rgba(0,200,100,0.2); border-radius: 8px; padding: 10px; text-align: center;">
+                            <div id="planting-result-fields" style="font-size: 20px; font-weight: 700; color: #00c864;">0</div>
+                            <div style="font-size: 10px; color: rgba(255,255,255,0.4);">Talhões</div>
+                        </div>
+                        <div style="flex: 1; background: rgba(0,200,100,0.08); border: 1px solid rgba(0,200,100,0.2); border-radius: 8px; padding: 10px; text-align: center;">
+                            <div id="planting-result-lines" style="font-size: 20px; font-weight: 700; color: #00c864;">0</div>
+                            <div style="font-size: 10px; color: rgba(255,255,255,0.4);">Linhas</div>
+                        </div>
+                    </div>
+                    
+                    <button id="planting-export-btn" style="
+                        width: 100%;
+                        padding: 12px;
+                        background: linear-gradient(135deg, #00c864, #00965e);
+                        border: none;
+                        border-radius: 8px;
+                        color: #fff;
+                        font-size: 14px;
+                        font-weight: 700;
+                        cursor: pointer;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        gap: 8px;
+                        transition: all 0.2s;
+                        box-shadow: 0 4px 12px rgba(0,200,100,0.3);
+                    ">
+                        📥 Exportar Shapefiles (.shp)
+                    </button>
+                    
+                    <div style="font-size: 9px; color: rgba(255,255,255,0.3); margin-top: 8px; text-align: center;">
+                        O ortomosaico será automaticamente excluído do servidor após a exportação
+                    </div>
+                </div>
+
+                <!-- Error Area -->
+                <div id="planting-error-area" style="display: none; padding: 14px 20px; border-top: 1px solid rgba(255,0,0,0.2);">
+                    <div style="font-size: 13px; color: #ff4444; font-weight: 600;">❌ Erro no Processamento</div>
+                    <div id="planting-error-msg" style="font-size: 11px; color: rgba(255,100,100,0.7); margin-top: 6px;"></div>
+                    <button id="planting-retry-btn" style="margin-top: 10px; padding: 8px 16px; background: rgba(255,0,0,0.1); border: 1px solid rgba(255,0,0,0.3); border-radius: 6px; color: #ff6666; font-size: 12px; cursor: pointer;">🔄 Tentar Novamente</button>
+                </div>
+            </div>
 
             <!-- ====== PAINEL ANÁLISE DE SATÉLITE (Desktop) ====== -->
             <div id="weed-analysis-panel" style="

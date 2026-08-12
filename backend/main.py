@@ -24,6 +24,12 @@ from pydantic import BaseModel
 from shapely.geometry import mapping, shape
 from shapely.ops import transform
 
+from fastapi import UploadFile, File
+from fastapi.responses import FileResponse
+import uuid
+import asyncio
+import shutil
+
 warnings.filterwarnings("ignore")
 
 app = FastAPI(
@@ -40,6 +46,12 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+# ─── Sessões de processamento de ortomosaico ─────────────────────
+ortho_sessions = {}  # session_id -> {filepath, status, progress, result, ...}
+ORTHO_UPLOAD_DIR = os.path.join(tempfile.gettempdir(), "geoportal_ortho")
+os.makedirs(ORTHO_UPLOAD_DIR, exist_ok=True)
 
 
 # ─── Modelos de dados ────────────────────────────────────────────
@@ -490,6 +502,209 @@ async def convert_dji_to_xag(req: DjiToXagRequest):
         headers={"Content-Disposition": "attachment; filename=xag_map.zip"}
     )
 
+
+
+# ─── Endpoints de Processamento de Ortomosaico ──────────────────
+
+@app.post("/ortho/upload")
+async def ortho_upload(file: UploadFile = File(...)):
+    """Recebe o ortomosaico GeoTIFF e retorna um session_id."""
+    if not file.filename.lower().endswith(('.tif', '.tiff')):
+        raise HTTPException(400, "Apenas arquivos GeoTIFF (.tif/.tiff) são aceitos.")
+    
+    session_id = str(uuid.uuid4())
+    filepath = os.path.join(ORTHO_UPLOAD_DIR, f"{session_id}.tif")
+    
+    # Salvar arquivo em chunks para não estourar memória
+    try:
+        with open(filepath, "wb") as f:
+            while chunk := await file.read(1024 * 1024):  # 1MB chunks
+                f.write(chunk)
+    except Exception as e:
+        raise HTTPException(500, f"Erro ao salvar arquivo: {str(e)}")
+    
+    # Validar se é um GeoTIFF válido
+    try:
+        import rasterio
+        with rasterio.open(filepath) as src:
+            if src.crs is None:
+                os.remove(filepath)
+                raise HTTPException(400, "O arquivo não possui sistema de coordenadas (CRS). Envie um GeoTIFF georeferenciado.")
+            bounds = src.bounds
+            ortho_sessions[session_id] = {
+                "filepath": filepath,
+                "status": "uploaded",
+                "progress": 0,
+                "progress_msg": "Arquivo recebido",
+                "bounds": {
+                    "west": bounds.left,
+                    "south": bounds.bottom, 
+                    "east": bounds.right,
+                    "north": bounds.top
+                },
+                "crs": str(src.crs),
+                "width": src.width,
+                "height": src.height,
+                "result": None,
+                "error": None
+            }
+    except rasterio.errors.RasterioError:
+        os.remove(filepath)
+        raise HTTPException(400, "Arquivo inválido. Não foi possível abrir como GeoTIFF.")
+    
+    return {
+        "session_id": session_id,
+        "bounds": ortho_sessions[session_id]["bounds"],
+        "crs": ortho_sessions[session_id]["crs"],
+        "width": ortho_sessions[session_id]["width"],
+        "height": ortho_sessions[session_id]["height"],
+        "filename": file.filename
+    }
+
+
+class OrthoProcessRequest(BaseModel):
+    session_id: str
+    row_spacing_m: float = 1.5
+    gsd_cm: float = 3.0
+
+
+@app.post("/ortho/process")
+async def ortho_process(req: OrthoProcessRequest):
+    """Processa o ortomosaico: detecta talhões e linhas de plantio."""
+    session = ortho_sessions.get(req.session_id)
+    if not session:
+        raise HTTPException(404, "Sessão não encontrada. Faça upload novamente.")
+    
+    if session["status"] == "processing":
+        return {"status": "processing", "progress": session["progress"], "msg": session["progress_msg"]}
+    
+    if session["status"] == "done":
+        return {"status": "done", "result": session["result"]}
+    
+    # Iniciar processamento em background
+    session["status"] = "processing"
+    session["progress"] = 0
+    
+    async def run_processing():
+        try:
+            from ortho_processor import OrthoProcessor
+            
+            processor = OrthoProcessor(
+                session["filepath"],
+                row_spacing_m=req.row_spacing_m,
+                gsd_cm=req.gsd_cm
+            )
+            
+            # Etapa 1: Detectar talhões
+            session["progress"] = 10
+            session["progress_msg"] = "Detectando áreas de cultivo..."
+            fields = processor.detect_fields()
+            session["progress"] = 40
+            
+            if not fields or len(fields.get("features", [])) == 0:
+                session["status"] = "error"
+                session["error"] = "Nenhuma área de cultivo detectada no ortomosaico."
+                return
+            
+            session["progress_msg"] = f"Detectando linhas de plantio em {len(fields['features'])} talhões..."
+            
+            # Etapa 2: Detectar linhas
+            session["progress"] = 50
+            lines = processor.detect_planting_lines(fields)
+            session["progress"] = 85
+            
+            # Etapa 3: Exportar shapefiles
+            session["progress_msg"] = "Gerando shapefiles..."
+            export_dir = os.path.join(ORTHO_UPLOAD_DIR, req.session_id + "_export")
+            os.makedirs(export_dir, exist_ok=True)
+            zip_path = processor.export_shapefiles(fields, lines, export_dir)
+            
+            session["progress"] = 100
+            session["progress_msg"] = "Concluído!"
+            session["status"] = "done"
+            session["result"] = {
+                "fields": fields,
+                "lines": lines,
+                "zip_path": zip_path,
+                "num_fields": len(fields.get("features", [])),
+                "num_lines": len(lines.get("features", []))
+            }
+            
+        except Exception as e:
+            import traceback
+            session["status"] = "error"
+            session["error"] = str(e)
+            session["progress_msg"] = f"Erro: {str(e)}"
+            traceback.print_exc()
+    
+    # Rodar em background thread para não bloquear o servidor
+    import threading
+    thread = threading.Thread(target=lambda: asyncio.run(run_processing()), daemon=True)
+    thread.start()
+    
+    return {"status": "processing", "progress": 0, "msg": "Processamento iniciado..."}
+
+
+@app.get("/ortho/status/{session_id}")
+async def ortho_status(session_id: str):
+    """Consulta o status do processamento."""
+    session = ortho_sessions.get(session_id)
+    if not session:
+        raise HTTPException(404, "Sessão não encontrada.")
+    
+    result = {
+        "status": session["status"],
+        "progress": session["progress"],
+        "msg": session.get("progress_msg", "")
+    }
+    
+    if session["status"] == "done" and session["result"]:
+        result["result"] = {
+            "fields": session["result"]["fields"],
+            "lines": session["result"]["lines"],
+            "num_fields": session["result"]["num_fields"],
+            "num_lines": session["result"]["num_lines"]
+        }
+    
+    if session["status"] == "error":
+        result["error"] = session.get("error", "Erro desconhecido")
+    
+    return result
+
+
+@app.get("/ortho/export/{session_id}")
+async def ortho_export(session_id: str):
+    """Exporta os shapefiles e deleta o ortomosaico do servidor."""
+    session = ortho_sessions.get(session_id)
+    if not session:
+        raise HTTPException(404, "Sessão não encontrada.")
+    if session["status"] != "done" or not session.get("result"):
+        raise HTTPException(400, "Processamento ainda não foi concluído.")
+    
+    zip_path = session["result"].get("zip_path")
+    if not zip_path or not os.path.exists(zip_path):
+        raise HTTPException(500, "Arquivo de exportação não encontrado.")
+    
+    # Ler ZIP em memória antes de limpar
+    with open(zip_path, "rb") as f:
+        zip_data = f.read()
+    
+    # Limpar: deletar ortomosaico e pasta de exportação
+    try:
+        if os.path.exists(session["filepath"]):
+            os.remove(session["filepath"])
+        export_dir = os.path.join(ORTHO_UPLOAD_DIR, session_id + "_export")
+        if os.path.exists(export_dir):
+            shutil.rmtree(export_dir)
+        del ortho_sessions[session_id]
+    except Exception:
+        pass
+    
+    return StreamingResponse(
+        io.BytesIO(zip_data),
+        media_type="application/zip",
+        headers={"Content-Disposition": "attachment; filename=linhas_plantio_cana.zip"}
+    )
 
 
 # ─── Inicialização ───────────────────────────────────────────────
